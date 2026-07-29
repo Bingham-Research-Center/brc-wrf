@@ -60,6 +60,24 @@ JOBID="${SLURM_JOB_ID:-manual}"
 PACKET="${ARCHIVE_ROOT}/domain_review/geogrid_${UTC}_${JOBID}"
 NDOM="${PREVIEW_NDOM:-3}"   # overridable: the two-domain 600 m spec sets 2
 
+# Plot annotation. Both default to the drainage case this script was written for, and
+# both must be overridden when it is pointed at another case -- a preview PNG captioned
+# with the wrong ladder is review evidence that says something untrue.
+TITLE="${PREVIEW_TITLE:-${CASE}: 3 km / 600 m / 120 m, d03 Ashley Valley drainage}"
+# Semicolon-separated "Name,lat,lon" triples; semicolons because the names contain
+# spaces. Parsed into repeated --target arguments below.
+TARGETS_SPEC="${PREVIEW_TARGETS:-Dry Fork,40.58,-109.63;Maeser,40.48,-109.58;Vernal,40.455,-109.53;Jensen,40.37,-109.35;Split Mtn,40.44,-109.20}"
+
+target_args=()
+IFS=';' read -r -a _target_list <<< "${TARGETS_SPEC}"
+for _t in ${_target_list[@]+"${_target_list[@]}"}; do
+    [[ -n "${_t}" ]] || continue
+    IFS=',' read -r _tname _tlat _tlon <<< "${_t}"
+    [[ -n "${_tname}" && -n "${_tlat}" && -n "${_tlon}" ]] \
+        || fail "bad PREVIEW_TARGETS entry (want 'Name,lat,lon'): ${_t}"
+    target_args+=(--target "${_tname}" "${_tlat}" "${_tlon}")
+done
+
 echo "geogrid preview (120 m) start $(date -u +%Y-%m-%dT%H:%M:%SZ) host=$(hostname) job=${JOBID}"
 echo "  case=${CASE} wps_run=${WPS_RUN} geog=${GEOG_DIR}"
 
@@ -133,12 +151,8 @@ module purge
     --wps-run "${WPS_RUN}" \
     --out-png "${WPS_RUN}/domain_preview.png" \
     --summary-tsv "${WPS_RUN}/geogrid_geo_em_summary.tsv" \
-    --title "${CASE}: 3 km / 600 m / 120 m, d03 Ashley Valley drainage" \
-    --target "Dry Fork" 40.58 -109.63 \
-    --target "Maeser" 40.48 -109.58 \
-    --target "Vernal" 40.455 -109.53 \
-    --target "Jensen" 40.37 -109.35 \
-    --target "Split Mtn" 40.44 -109.20
+    --title "${TITLE}" \
+    ${target_args[@]+"${target_args[@]}"}
 [[ -f "${WPS_RUN}/domain_preview.png" ]] || fail "plot did not produce domain_preview.png"
 
 # ---- step 5: archive review packet -----------------------------------------
