@@ -1,5 +1,5 @@
-#-----------------------------------------------#
-# A25 name | 1X | A5 pfx | 1X | F7.3 lat | 1X | F8.3 lon  (wrf_tsin.F:86)
+# A25 name |1X| A5 pfx |1X| F7.3 lat |1X| F8.3 lon -- wrf_tsin.F:86
+# 24 characters for name | pfx |  LAT  |   LON  |
 #-----------------------------------------------#
 manila UCC25              UCC25  40.992 -109.721
 cart_creek CCRU1          CCRU1  40.885 -109.417
