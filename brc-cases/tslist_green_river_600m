@@ -1,0 +1,19 @@
+#-----------------------------------------------#
+# A25 name | 1X | A5 pfx | 1X | F7.3 lat | 1X | F8.3 lon  (wrf_tsin.F:86)
+#-----------------------------------------------#
+manila UCC25              UCC25  40.992 -109.721
+cart_creek CCRU1          CCRU1  40.885 -109.417
+kings_point KPRU1         KPRU1  40.860 -109.103
+split_mountain SPMU1      SPMU1  40.380 -109.357
+dinosaur_nm A3822         A3822  40.437 -109.305
+jensen JENU1              JENU1  40.364 -109.346
+moose_pond UTMOP          UTMOP  40.842 -109.647
+willie_spring UTWIS       UTWIS  40.854 -109.462
+bassett_spring UTBAS      UTBAS  40.724 -109.469
+windy_point UTWPO         UTWPO  40.641 -109.486
+diamond_rim DIAU1         DIAU1  40.617 -109.243
+flaming_gorge_dam         FLAMI  40.914 -109.421
+dutch_john                DUTCH  40.930 -109.404
+dry_fork PC101            PC101  40.523 -109.606
+vernal_airport KVEL       KVEL   40.443 -109.513
+marsh_peak                MARSH  40.711 -109.828
