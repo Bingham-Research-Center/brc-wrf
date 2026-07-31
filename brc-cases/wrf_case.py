@@ -300,6 +300,7 @@ def add_wps_root_findings(
     *,
     strict_files: bool,
     vtable: str,
+    vtable_dir: Path | None = None,
 ) -> None:
     add_path_finding(
         findings,
@@ -330,7 +331,11 @@ def add_wps_root_findings(
     required_files = ["link_grib.csh"]
     if "/" in vtable or not vtable:
         findings.append(Finding("ERROR", f"wps.vtable is not a simple table name: {vtable!r}"))
-    else:
+    elif vtable_dir is None or not (vtable_dir / vtable).is_file():
+        # Only demand it from the WPS tree when the case does NOT carry its own copy.
+        # wps.vtable_dir exists precisely because the two-stream HRRR+GFS-soil Vtables
+        # ship in neither WPS nor this repo, and warning that a file is "missing" from
+        # a directory the run never reads trains the operator to ignore warnings.
         required_files.append(f"ungrib/Variable_Tables/{vtable}")
 
     for file_name in required_files:
@@ -718,6 +723,8 @@ def validate_case(data: dict[str, Any], *, strict_files: bool) -> list[Finding]:
         as_path(paths["wps_root"]),
         strict_files=strict_files,
         vtable=str(data.get("wps", {}).get("vtable", "Vtable.NAM")),
+        vtable_dir=(as_path(data["wps"]["vtable_dir"])
+                    if data.get("wps", {}).get("vtable_dir") else None),
     )
     add_path_finding(
         findings, as_path(paths["geog_data_path"]), "paths.geog_data_path",
@@ -1330,7 +1337,17 @@ def render_wps_field_proof_slurm(data: dict[str, Any], case_file: Path) -> str:
             'test -x "$WPS_ROOT/ungrib.exe"',
             'test -x "$WPS_ROOT/metgrid.exe"',
             'test -f "$WPS_ROOT/link_grib.csh"',
-            'test -f "$WPS_ROOT/ungrib/Variable_Tables/$VTABLE_NAME"',
+            # Resolve the primary Vtable the SAME WAY the ungrib loop below does:
+            # vtable_dir first, then the WPS tree. This used to test the WPS tree
+            # unconditionally, which is a location the script never actually reads --
+            # every stream, including the primary one, is linked from "$VTABLE_DIR/..."
+            # in the STREAMS loop. A case whose Vtables live in its own control packet
+            # (the two-stream HRRR+GFS-soil design: Vtable.raphrrr.nosoil and
+            # Vtable.gfssoil ship in neither WPS nor this repo) therefore aborted at a
+            # precondition that contradicted the execution path.
+            'test -f "$VTABLE_DIR/$VTABLE_NAME" '
+            '|| test -f "$WPS_ROOT/ungrib/Variable_Tables/$VTABLE_NAME" '
+            '|| fail "Vtable $VTABLE_NAME is in neither $VTABLE_DIR nor $WPS_ROOT/ungrib/Variable_Tables"',
             'test -f "$NAMELIST_TEMPLATE"',
             'test -d "$GEOGRID_SOURCE"',
             'compgen -G "$GEOGRID_SOURCE/geo_em.d0*.nc" >/dev/null || fail "missing geo_em.d0*.nc in GEOGRID_SOURCE=$GEOGRID_SOURCE"',

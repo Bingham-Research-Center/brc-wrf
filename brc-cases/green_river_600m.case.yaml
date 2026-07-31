@@ -1,0 +1,114 @@
+schema_version: 1
+
+# Green River corridor 600 m. Two-domain 5:1 ladder, HRRR-forced, one-way.
+# Tracked in ../ub-wx/experiments/20251121-green-river-cold-reservoir/ (rationale in
+# its notes.md, "Configuration decisions"). Do not restate the science here.
+#
+# EVENT: 21-22 NOVEMBER 2025, init 12Z. Justification is gate A0 of that entry, which
+# passed 2026-07-31 on both halves -- 700 hPa 1.87-3.01 m/s over the box (weak forcing
+# confirmed at ridge level, not only at the surface) and twelve corridor stations
+# reporting through the night, with PC101 at a median 302 deg down-canyon.
+#
+# num_metgrid_levels=51 (50 HRRR hybrid levels + the surface) is a property of HRRR
+# rather than of the date and carries over from the sibling's gate C. The two-stream
+# design carries over for the same reason. expected_met_em_count does NOT carry over:
+# it is 70 here (2 domains x 35 valid times), where the sibling had 51.
+#
+# The geometry is NOT stated here. It lives in specs/green_river_600m.domain.toml and
+# is rendered by domain_calc.py into the draft namelist.wps referenced below, so a
+# domain change has exactly one home.
+
+case:
+  name: green_river_600m
+  label: "Green River trench, 3 km -> 600 m HRRR one-way, nocturnal cold-air reservoir"
+  # 12Z 21 Nov -> 22Z 22 Nov is the STAGED/boundary span; wrf.exe integrates only to
+  # 16Z (run_hours=28). The longer end makes a restart extension legal without WPS.
+  #
+  # `end` MUST EQUAL THE LAST STAGED LEAD. 12Z + 34 h = 22Z on the 22nd = f34, the
+  # last lead staged. A first draft used a round 00Z 23 Nov, which is 37 valid times
+  # against 35 staged -- metgrid would have asked ungrib for two intermediates that do
+  # not exist. The staged span and this date are one decision, not two.
+  start: "2025-11-21_12:00:00"
+  end: "2025-11-22_22:00:00"
+  domains: 2
+  owner_namespace: jrlawson
+  proof_status: gates_a0_a_b_passed
+
+forcing:
+  # Two streams, and this is not optional: public HRRR GRIB carries NO soil
+  # temperature (num_metgrid_soil_levels=0 -> Noah init fails). Established by the
+  # sibling case's gate C; soil comes from GFS 0.25 f000, valid AT init with zero
+  # staleness. Event-independent.
+  # "gfs_soil", not "gfs": that is the brc-tools source name, and it is what the
+  # staged manifest and contract both record. Declaring "gfs" makes `validate` warn
+  # that the manifest is missing a requested source when nothing is missing.
+  sources: ["hrrr", "gfs_soil"]
+  wps_fg_name: ["HRRR", "GFSSOIL"]
+  interval_seconds: 3600
+  num_metgrid_levels: 51
+  expected_met_em_count: 70   # 2 domains x 35 valid times (12Z 21 Nov -> 22Z 22 Nov)
+  manifest_path: "/scratch/general/vast/${USER}/wrf_inputs/green_river_600m/manifest_green_river_600m.json"
+  contract_path: "/scratch/general/vast/${USER}/wrf_inputs/green_river_600m/contract_green_river_600m.json"
+
+paths:
+  wrf_src: "/uufs/chpc.utah.edu/common/home/u0737349/gits/brc-wrf"
+  wrf_build: "/uufs/chpc.utah.edu/common/home/u0737349/gits/brc-wrf"
+  wps_root: "/uufs/chpc.utah.edu/common/home/lawson-group6/jrlawson/wrf_build/WPS"
+  input_root: "/scratch/general/vast/${USER}/wrf_inputs/green_river_600m"
+  grib_data: "/scratch/general/vast/${USER}/wrf_runs/green_river_600m/grib_data"
+  run_root: "/scratch/general/vast/${USER}/wrf_runs/green_river_600m"
+  wps_run: "/scratch/general/vast/${USER}/wrf_runs/green_river_600m/wps_run"
+  wrf_run: "/scratch/general/vast/${USER}/wrf_runs/green_river_600m/wrf_run"
+  # The 3-arc-second set (~90 m source) is grid-appropriate at 600 m. The custom
+  # 1-arc-second set built for the 37 m sibling is over-resolved here and was the
+  # source of its 56-degree grid-scale slopes.
+  geog_data_path: "/scratch/general/vast/${USER}/wps_geog_terrain3s"
+  archive_root: "/uufs/chpc.utah.edu/common/home/lawson-group6/jrlawson/wrf_archive/green_river_600m"
+
+wps:
+  # SOIL-STRIPPED. Plain Vtable.raphrrr would reinstate HRRR's degenerate 0/0.01 m
+  # soil layers and they would beat GFS's real ones, silently undoing the two-stream
+  # fix. The discriminating check at gate C is the SPATIAL STANDARD DEVIATION of ST:
+  # a spatially uniform soil temperature means HRRR won the priority contest.
+  vtable: "Vtable.raphrrr.nosoil"
+  ungrib_prefix: "HRRR"
+  namelist_fg_name: ["HRRR", "GFSSOIL"]
+  # Neither Vtable ships in the WPS tree. Copied byte-identical (md5 verified) from
+  # the sibling's gate C packet, which remains their origin.
+  vtable_dir: "/uufs/chpc.utah.edu/common/home/lawson-group6/jrlawson/wrf_archive/green_river_600m/control/gateC_20260731T0253Z"
+  # The soil stream. ungrib_prefix above is the ATMOSPHERE stream and must stay the
+  # FIRST entry of namelist_fg_name -- metgrid reads fg_name by priority, so an
+  # inverted order would let GFS take the atmosphere away from HRRR silently.
+  # single_time: the staged GFS file is one cycle valid exactly at init (12Z 21 Nov
+  # f000), so its single intermediate is duplicated across all thirty-five valid times.
+  extra_streams: [{"prefix": "GFSSOIL", "vtable": "Vtable.gfssoil", "source": "gfs_soil", "single_time": true}]
+  namelist_template: "/uufs/chpc.utah.edu/common/home/lawson-group6/jrlawson/wrf_archive/green_river_600m/control/draft/namelist.wps"
+  geogrid_source: "/scratch/general/vast/${USER}/wrf_runs/green_river_600m/domain_preview/wps_run"
+
+namelists:
+  namelist_wps: "/scratch/general/vast/${USER}/wrf_runs/green_river_600m/wps_run/namelist.wps"
+  namelist_input: "/scratch/general/vast/${USER}/wrf_runs/green_river_600m/wrf_run/namelist.input"
+
+# Owned reserved node, whole-node allocation. COST IS SCALED, NOT MEASURED: ~1.09
+# wall-h per simulated hour = 0.833 (this footprint at e_vert 80, scaled from the
+# MEASURED 0.597 anchor) x 1.25 (e_vert 100) x ~1.05 (MYNN2), so ~30 wall-hours for
+# 28 h. Every factor is a scaling; CHK-COST settles it at gate E on a measured hour.
+# domain_calc.py projects 0.36 and is NOT the fallback -- it has been optimistic by
+# 2.3x and 2.7x on this lineage.
+#   time: sized for the 28 h production member with headroom. Override per gate --
+#   metgrid and real.exe need minutes, the gate E smoke needs about an hour.
+slurm:
+  profile: owned_notch392_max
+  job_name: wrf_green_river_600m
+  account: lawson-np
+  partition: lawson-np
+  nodelist: notch392
+  nodes: 1
+  ntasks: 56
+  memory: "900G"
+  time: "40:00:00"
+  mpi_launcher: "srun --mpi=pmi2"
+
+archive:
+  required_patterns: ["wrfout_d0*", "namelist.input", "rsl.out.0000", "real.rsl.out.0000"]
+  colon_safe_wrfout_source: "./wrfout_d0*"
