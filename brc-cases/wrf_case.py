@@ -1508,9 +1508,19 @@ def render_wps_field_proof_slurm(data: dict[str, Any], case_file: Path) -> str:
             "    print $1 \"\\t\" status \"\\t\" $2",
             "  }",
             "' \"$DEBUG_DIR/met_em_fields.txt\" \"$DEBUG_DIR/field_check_patterns.tsv\" > \"$DEBUG_DIR/field_check.tsv\"",
-            'grep -Eai "warn|error|fatal|missing|not found" ungrib.log metgrid.log > "$DEBUG_DIR/wps_warning_lines.txt" || true',
+            # The per-stream loop above MOVED each ungrib.log to
+            # $DEBUG_DIR/ungrib_<PREFIX>.log, so scan them there. Scanning a bare
+            # ungrib.log in the work dir silently found nothing once the two-stream
+            # design landed -- the warnings it exists to surface were never read.
+            'grep -Eai "warn|error|fatal|missing|not found" '
+            '"$DEBUG_DIR"/ungrib_*.log metgrid.log > "$DEBUG_DIR/wps_warning_lines.txt" || true',
             'find "$WPS_WORK" -maxdepth 1 -type f -printf "%f\\t%s\\t%TY-%Tm-%TdT%TH:%TM:%TS\\n" | sort > "$DEBUG_DIR/wps_file_inventory.tsv"',
-            'cp namelist.wps ungrib.log metgrid.log "$DEBUG_DIR"/',
+            # NOT ungrib.log: the per-stream loop already moved it into $DEBUG_DIR
+            # under ungrib_<PREFIX>.log. Copying it here is unguarded under `set -e`,
+            # so a two-stream run FAILED the job after metgrid had completed
+            # successfully and all 70 met_em were on disk (job 14399436, 4h57m of
+            # work discarded by a cp of a file the script itself had moved).
+            'cp namelist.wps metgrid.log "$DEBUG_DIR"/',
             "",
             'missing_count=$(awk -F "\\t" \'$2 == "FAIL" { n++ } END { print n + 0 }\' "$DEBUG_DIR/field_check.tsv")',
             "{",
