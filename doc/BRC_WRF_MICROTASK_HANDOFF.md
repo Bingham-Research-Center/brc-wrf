@@ -19,6 +19,16 @@ Use `BRC_WRF_EXPERIMENT_TODO.md` for the current task and
 `BRC_WRF_RESEARCH_BUILDS.md` for the 6 October gigawatts build and branch
 consolidation. The Pelican evidence below is the previous completed goal.
 
+6 October compile closure: retry `16071302` completed `0:0` in `00:30:44`
+on notch392; source `5a68435c`, tag
+`john/build/wrf-4.8.0-tracers24-20261006`. Four executables, 24-tracer
+generated metadata, resolved libraries, empty compiler-error and tracked
+source-diff checks, and executable/runtime SHA-256 records passed. The
+manifest and full build/evidence paths are in `BRC_WRF_RESEARCH_BUILDS.md`.
+First attempt `16071250` was cancelled after the missing Shin-Hong make
+prerequisite caused compiler failures; the fix was verified by a make-graph
+probe and the clean retry. No model test or integration was run.
+
 ## Previous Completed Goal: Pelican Feedback Suite
 
 Current user-selected goal is closed: the default-terrain GFS one-way member

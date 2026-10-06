@@ -71,6 +71,16 @@ flags. It supplies eleven concentration / concentration-times-initial-theta
 pairs and one held pair. Region definitions and seeding remain experiment
 configuration. The old eight-tracer executables are retained.
 
+The first clean parallel attempt, job `16071250` at source `062aa22a`, exposed
+a missing dependency: `physics_mmm/bl_shinhong.F90` uses `ccpp_kind_types`,
+but only its wrapper declared that prerequisite. The implementation could
+compile first, causing Intel error 7002 and cascading PBL errors that make
+ignored. It was cancelled and retained as failed evidence. Commit `5a68435c`
+adds the implementation prerequisite and rejects ignored compiler errors in
+the build wrapper. This is a local build-order fix, with no physics source
+change or upstream port. Job `16071302` is the fresh retry, with no object
+reuse; it passed the compile acceptance checks below.
+
 ### Review findings that must survive handoff
 
 - Iteration 6 is a design/theory report with geogrid and preparatory evidence;
@@ -116,5 +126,33 @@ MYNN2, Thompson and Noah; GFS soil only, HRRR snow/skin temperature; observed
 26 January lake ice with open cells at 274.15 K; plan-D output and 128 sites.
 The carved-terrain run, corridor nest and frozen-lake twin are follow-ups.
 
-Build outcome and artifact pointers are recorded in the experiment todo and
-detailed evidence ledger when the scheduler reaches a terminal state.
+## Verified compile release: 6 October 2026
+
+| Item | Verified value |
+| --- | --- |
+| Release tag (published) | `john/build/wrf-4.8.0-tracers24-20261006` |
+| Compiled source | `5a68435cbf6383c717e1492193b771ade99c517c` |
+| Job | `16071302`, `COMPLETED`, `0:0`, `00:30:44`, notch392, eight CPUs |
+| Build root | `/uufs/chpc.utah.edu/common/home/lawson-group6/jrlawson/wrf_build/WRF-4.8.0-tracers24-5a68435cbf63-20261006T071850Z` |
+| Evidence root | `/uufs/chpc.utah.edu/common/home/lawson-group6/jrlawson/wrf_build_logs/brc-wrf/tracers24_20261006T071850Z_5a68435cbf63` |
+| Manifest | `build_manifest.json` in the evidence root |
+| Executables | `main/wrf.exe`, `main/real.exe`, `main/ndown.exe`, `main/tc.exe` in the build root |
+
+`wrf.exe` SHA-256:
+`94b0952fef5e866c2c03a4e9e2543496cc40aaec5415969d75932c89de92c256`.
+`real.exe` SHA-256:
+`524e6104793080089eca84c2e970d01305fb76771fc642368344bf5b0d3b0d65`.
+The evidence contains the other executable/configuration hashes and 90 runtime
+file hashes. `configure.wrf` byte-matches the June build's configuration.
+All eight submodules are pinned, the source was clean before compilation,
+and `post_build_source.diff` is empty. Both source and generated allocation
+checks pass for the exact 24-member package. The compiler-error scan is empty,
+and `ldd` resolves all libraries for WRF and real. The generated commit
+declaration records the full compiled source SHA.
+
+This is a **compile release**, ready for separately approved model pre-flight
+tests. No WPS, real, WRF integration, restart seeding or nest test was run in
+this build session. The next case/control packet must adopt this explicit
+build root and manifest; historical manifests and the June binaries retain
+their existing paths. The stale untracked September gigawatts spec was left
+untouched.

@@ -39,8 +39,9 @@ default first stop.
 Validated baseline: NAM-only Jan-2013 Uinta Basin, 12/4 km nested, WPS
 `Vtable.NAM`, `interval_seconds = 21600`; Gates 5-11 passed on 2026-06-18.
 
-Current work is the approved drainage-canyons-gigawatts 24-tracer build and
-its provenance record. Model pre-flight tests and the 48-hour reference run
+The drainage-canyons-gigawatts 24-tracer compile release is verified and
+tagged; its provenance record is in `doc/BRC_WRF_RESEARCH_BUILDS.md`.
+Model pre-flight tests and the 48-hour reference run
 remain separate gates. Pelican controls, feedback comparisons and approved
 terrain/physics treatments are complete through quicklooks and await human
 science review. Exact state and evidence belong in the experiment todo.

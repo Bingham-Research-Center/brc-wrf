@@ -117,7 +117,7 @@ a proven NetCDF-capable render environment with `PYTHONPATH` pointed at
 
 ## Active Experiment Snapshot
 
-- Drainage-canyons-gigawatts: 24-tracer compile approved on 6 October 2026;
+- Drainage-canyons-gigawatts: 24-tracer compile verified on 6 October 2026;
   build/provenance owner is `doc/BRC_WRF_RESEARCH_BUILDS.md`. Model tests and
   the 48-hour run remain separate gates. Canonical source line: `john/wrf`.
 - The Jan-2013 NAM proof is validated; use it as the small reference case.

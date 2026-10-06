@@ -8,12 +8,22 @@ AI cold start.
 
 ## Current Aim
 
-**6 October 2026: drainage canyons in gigawatts.** JRL approved a 24-tracer
-WRF rebuild from the October `ub-wx` handoff. Canonical source is `john/wrf`;
-the source change, build contract, branch audit and outstanding science issues
-are in `BRC_WRF_RESEARCH_BUILDS.md`. Compile in a fresh pinned directory,
-preserving the June executables. Stop at verified compile proof: model
-pre-flight tests and the 48-hour run are not authorized by this rebuild.
+**6 October 2026: drainage canyons in gigawatts.** The approved 24-tracer
+rebuild passed: job `16071302`, `COMPLETED 0:0`, elapsed `00:30:44`, source
+`5a68435c`, published tag `john/build/wrf-4.8.0-tracers24-20261006`.
+The fresh build has all four executables, exact generated tracer metadata,
+empty compiler-error/source-diff checks, and executable/runtime hashes.
+An initial compile exposed a missing make dependency; the fix and failed
+attempt are retained in the evidence. The June executables are preserved.
+
+`john/wrf` is now the sole active John branch and GitHub default; eight
+published archive tags preserve retired tips, and `master` stays frozen.
+Build paths, manifest, branch audit and outstanding science issues are in
+`BRC_WRF_RESEARCH_BUILDS.md`. Next: adopt the October case spec and pinned
+build into a control packet, settle the tracer-cost comparison and remaining
+science/input checks, then seek approval for model pre-flight submissions.
+The 48-hour run remains a later gate. brc-tools PRs 66/68 were still open at
+the live review.
 
 ## Completed Pelican Work Awaiting Review
 
