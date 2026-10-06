@@ -15,6 +15,12 @@ line remains frozen unless a specific port is intentionally approved.
 
 ## Selective Port Procedure
 
+The maintained research line is `john/wrf`. Experiment configurations share
+that line; immutable experiment/build tags and manifests pin provenance.
+See `BRC_WRF_RESEARCH_BUILDS.md` for the build contract and the October 2026
+consolidation of existing John branches. This does not authorize upstream
+synchronization.
+
 When a newer WRF change is needed:
 
 1. State the operational or scientific reason for the port.

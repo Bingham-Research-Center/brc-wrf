@@ -8,6 +8,15 @@ AI cold start.
 
 ## Current Aim
 
+**6 October 2026: drainage canyons in gigawatts.** JRL approved a 24-tracer
+WRF rebuild from the October `ub-wx` handoff. Canonical source is `john/wrf`;
+the source change, build contract, branch audit and outstanding science issues
+are in `BRC_WRF_RESEARCH_BUILDS.md`. Compile in a fresh pinned directory,
+preserving the June executables. Stop at verified compile proof: model
+pre-flight tests and the 48-hour run are not authorized by this rebuild.
+
+## Completed Pelican Work Awaiting Review
+
 Use the completed Pelican 3/1/0.333 km, 75-level runs as a poor-man's ensemble:
 
 - NAM two-way baseline: complete.

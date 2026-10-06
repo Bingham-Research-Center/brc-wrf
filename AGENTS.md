@@ -43,6 +43,7 @@ Then choose one owner document below; do not read the whole set.
 | Pelican RAP WPS-only field adequacy review | `brc-docs/BRC-WRF-PELICAN-RAP-FEASIBILITY.md` | `brc-cases/pelican2013_rap_3_1_333m_75lev.case.yaml` |
 | A new forcing source or a staging/contract problem | `../brc-tools/docs/WRF-STAGING-STATE-PLAYBOOK.md` | `../brc-tools/docs/WRF-INPUT-STAGING.md`; return here only with a verified contract |
 | Build, WPS, or full WRF conveyor route | `doc/BRC_WRF_END_TO_END_AI_HANDOFF.md` | `brc-docs/BRC-WRF-RUN-CONVEYOR-SOP.md` |
+| Canonical research builds, provenance, or gigawatts tracer rebuild | `doc/BRC_WRF_RESEARCH_BUILDS.md` | `brc-cases/build_research_wrf.slurm` |
 
 For every run, use the case manifest and rendered control evidence as the
 authority for executable paths and run roots; do not copy a path from an old
@@ -116,6 +117,9 @@ a proven NetCDF-capable render environment with `PYTHONPATH` pointed at
 
 ## Active Experiment Snapshot
 
+- Drainage-canyons-gigawatts: 24-tracer compile approved on 6 October 2026;
+  build/provenance owner is `doc/BRC_WRF_RESEARCH_BUILDS.md`. Model tests and
+  the 48-hour run remain separate gates. Canonical source line: `john/wrf`.
 - The Jan-2013 NAM proof is validated; use it as the small reference case.
 - Pelican NAM/GFS controls, feedback comparisons, custom-3s terrain, and the
   approved terrain treatments are complete through quicklooks. The current
