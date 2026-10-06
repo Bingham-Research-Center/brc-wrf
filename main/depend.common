@@ -631,6 +631,11 @@ module_bl_ysu.o: \
 module_bl_shinhong.o: \
 	ccpp_kind_types.o \
 	physics_mmm/bl_shinhong.o
+
+# The implementation also USEs ccpp_kind_types. The wrapper's prerequisites
+# alone do not order these two siblings during a parallel build.
+physics_mmm/bl_shinhong.o: \
+	ccpp_kind_types.o
   
 
 module_bl_myjpbl.o: \

@@ -75,6 +75,8 @@ cp configure.wrf "$EVIDENCE/configure.wrf"
 printf 'phase=compile\n' >> "$SUMMARY"
 ./compile -j "${SLURM_CPUS_PER_TASK}" em_real > "$EVIDENCE/compile_em_real.log" 2>&1
 # WRF's compile driver may return zero after an internal make failure.
+if grep -E 'error #[0-9]+|fatal error:|undefined reference|Error [0-9]+ \(ignored\)' \
+    "$EVIDENCE/compile_em_real.log" > "$EVIDENCE/compiler_errors.txt"; then exit 1; fi
 for exe in wrf real ndown tc; do test -x "main/$exe.exe"; done
 python3 -B brc-cases/check_tracer_registry.py . --generated > "$EVIDENCE/tracer_generated_check.txt"
 grep -F "$WRF_SHA" inc/commit_decl > "$EVIDENCE/embedded_commit.txt"
