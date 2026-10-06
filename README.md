@@ -17,6 +17,11 @@ pinned starting point. When a newer upstream change is needed, port only that
 specific change through a reviewable BRC branch, record its source and reason,
 and validate it here before adoption. See `doc/BRC_WRF_PORTING_POLICY.md`.
 
+`john/wrf` is the canonical research line and GitHub default. Build releases
+pin exact source/submodule commits and executable hashes; experiments pin
+their case/control configuration separately. See
+[`doc/BRC_WRF_RESEARCH_BUILDS.md`](doc/BRC_WRF_RESEARCH_BUILDS.md).
+
 ## Fast Start
 
 For a cold start, read:
@@ -34,11 +39,11 @@ default first stop.
 Validated baseline: NAM-only Jan-2013 Uinta Basin, 12/4 km nested, WPS
 `Vtable.NAM`, `interval_seconds = 21600`; Gates 5-11 passed on 2026-06-18.
 
-Current Pelican experiment set: NAM two-way baseline, GFS analysis hot-swap,
-and NAM one-way feedback sensitivity are complete for the 3/1/0.333 km,
-75-level case. Standard and supplemental quicklooks are rendered. The active
-lane is geogrid-only proof for the NAM one-way custom `3s` `HGT_M` terrain
-source now built under scratch; WRF rerun comes later only after approval.
+Current work is the approved drainage-canyons-gigawatts 24-tracer build and
+its provenance record. Model pre-flight tests and the 48-hour reference run
+remain separate gates. Pelican controls, feedback comparisons and approved
+terrain/physics treatments are complete through quicklooks and await human
+science review. Exact state and evidence belong in the experiment todo.
 
 RAP-only is blocked before `real.exe`, ERA5 is blocked locally by source
 support/tooling/credentials, FNL is optional third-source work, and the older
@@ -51,6 +56,7 @@ GEFS+NAM two-stream idea is parked unless explicitly revived.
 | Active experiment todo across `brc-wrf` and `brc-tools` | `doc/BRC_WRF_EXPERIMENT_TODO.md` |
 | Detailed evidence ledger | `doc/BRC_WRF_MICROTASK_HANDOFF.md` |
 | Build/WPS/WRF route | `doc/BRC_WRF_END_TO_END_AI_HANDOFF.md` |
+| Canonical research source, build provenance, gigawatts review | `doc/BRC_WRF_RESEARCH_BUILDS.md` |
 | Pelican source verdicts and review prompts | `brc-docs/BRC-WRF-PELICAN-NWP-HOTSWAP-HANDOFF.md` |
 | Conveyor, archive, and quicklook rules | `brc-docs/BRC-WRF-RUN-CONVEYOR-SOP.md` |
 | Case manifests, validators, Slurm renderers, quicklooks | `brc-cases/README.md` |

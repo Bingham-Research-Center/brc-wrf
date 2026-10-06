@@ -102,6 +102,12 @@ contract with these fields:
 
 Do this only after approval for compile-scale work.
 
+For new research builds use `BRC_WRF_RESEARCH_BUILDS.md` and
+`brc-cases/build_research_wrf.slurm`: a fresh detached copy of the approved
+source and submodule commits, a unique durable executable root, and hashes.
+The existing development-checkout binaries are historical build evidence;
+do not overwrite them or infer their identity from today's checkout HEAD.
+
 | Step | Action | Evidence | Stop point |
 | ---: | --- | --- | --- |
 | 1 | Confirm branch, SHA, dirty files, and remote. | `git status --short --branch --untracked-files=all`; `git rev-parse HEAD`; `git remote -v`. | Do not build if source state is ambiguous. |

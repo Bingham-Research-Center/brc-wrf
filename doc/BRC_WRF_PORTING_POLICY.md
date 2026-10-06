@@ -13,13 +13,15 @@ this repository. In particular, do not merge, rebase, or routinely synchronize
 `john/*` work from `master`, `main`, or an upstream remote. The current BRC
 line remains frozen unless a specific port is intentionally approved.
 
-## Selective Port Procedure
+## Canonical Research Line
 
 The maintained research line is `john/wrf`. Experiment configurations share
 that line; immutable experiment/build tags and manifests pin provenance.
 See `BRC_WRF_RESEARCH_BUILDS.md` for the build contract and the October 2026
 consolidation of existing John branches. This does not authorize upstream
 synchronization.
+
+## Selective Port Procedure
 
 When a newer WRF change is needed:
 

@@ -15,6 +15,12 @@ large downloads.
 
 ## Active Goal For Next Session
 
+Use `BRC_WRF_EXPERIMENT_TODO.md` for the current task and
+`BRC_WRF_RESEARCH_BUILDS.md` for the 6 October gigawatts build and branch
+consolidation. The Pelican evidence below is the previous completed goal.
+
+## Previous Completed Goal: Pelican Feedback Suite
+
 Current user-selected goal is closed: the default-terrain GFS one-way member
 completed in preparation `13894268`, WRF `13894282`, and quicklooks `13896648`.
 It reused the accepted X6 GFS `met_em` inputs, changed only

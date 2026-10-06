@@ -7,6 +7,9 @@ baseline. Experiment case files coexist on that line. Use short-lived
 `john/*` branches for changes that need review, and immutable tags plus
 build manifests to identify experiments; a moving branch name is not build
 provenance. Upstream ports still follow `BRC_WRF_PORTING_POLICY.md`.
+GitHub's default branch is `john/wrf` after the approved 6 October
+consolidation. Source tags identify build releases; separate experiment tags
+can pin later case/control changes that reuse the same executable build.
 
 A build is a fresh, detached copy of a full source commit and its exact
 submodule commits in a unique John-owned directory under
@@ -35,7 +38,7 @@ still identify the June binaries there until explicitly migrated.
 Local and live origin heads were checked. All seven local `john/*` tips
 belong to one linear history ending at `5bbcdb705ba7f76f3da8bd2ae7f473c66ffd3bb6`.
 `john/wrf` was fast-forwarded 25 commits to that tip for the approved build.
-No upstream history was imported. The retired-tip candidates are:
+No upstream history was imported. The retired tips are:
 
 | Branch | Local tip | Live origin tip |
 | --- | --- | --- |
@@ -46,11 +49,13 @@ No upstream history was imported. The retired-tip candidates are:
 | `john/green-river-600m` | `5bbcdb70` | absent |
 | `john/wrf-no-run-report` | `1244fb3a` | same |
 
-Preserve those exact local and remote tips as annotated archival tags before
-removing branch names. Publish and verify the canonical branch and tags before
-remote deletion. `master` is outside this consolidation and stays frozen.
-One active John branch is sufficient; deleting names does not remove any
-experiment source history. Branch retirement is pending review.
+JRL approved consolidation on `john/wrf`. Eight annotated
+`archive/john/*/20261006*` tags preserve every listed tip plus the original
+`john/wrf` tip `6051d58b`; all were published and their peeled commits checked
+on origin before deletion. The six absorbed local branches and four absorbed
+remote branches were removed, with explicit expected-tip leases for remote
+deletion. Both local and origin now have only `john/wrf` and frozen `master`
+(`06d4240a`). No experiment source history was lost.
 
 ## Drainage canyons in gigawatts: accepted build scope
 
@@ -71,6 +76,11 @@ configuration. The old eight-tracer executables are retained.
 - Iteration 6 is a design/theory report with geogrid and preparatory evidence;
   its numerical predictions and 5.4-day runtime estimate are not WRF results.
   The measured pre-flight half is still pending.
+- Live GitHub checks on 6 October confirm brc-tools PRs
+  [66](https://github.com/Bingham-Research-Center/brc-tools/pull/66) and
+  [68](https://github.com/Bingham-Research-Center/brc-tools/pull/68) are both
+  open; the latter is stacked on the former. The handoff's dependency merges
+  are still outstanding. The live ub-wx experiment branch matches `9a6c78ac`.
 - The handoff says its patch `--check` already passes. On the unmodified
   `5bbcdb70` tree it exits 1 with eight tracers. Its checker also only counts
   declarations, without validating exact package membership. The maintained
