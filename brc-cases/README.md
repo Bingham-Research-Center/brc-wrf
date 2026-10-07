@@ -10,6 +10,14 @@ packet. Separate `gigawatts_wps.slurm`, `gigawatts_real.slurm` and
 `gigawatts_smoke.slurm` stop at their respective evidence gates. Current jobs,
 source pins and approval scope are recorded in the ub-wx experiment README.
 
+`gigawatts_metgrid_resume.slurm` is a bounded continuation for an initial WPS
+job that reaches TIMEOUT after entering d02. It preserves completed files and
+intermediates, redoes the last-started hour plus a completed overlap hour on
+eight MPI ranks, compares every overlap field, and verifies all 98 output
+clocks, required fields and levels. It refuses other failure states. The
+initial render used a singleton metgrid launch; Slurm refused a runtime-limit
+increase, so this packet avoids redoing the completed ungrib/domain-one work.
+
 `prepare_delayed_static.py` prepares the later d03 static-only input from an
 actual real.exe file. It audits the released build's complete Registry include
 graph and uses otherwise empty input stream 6 with an explicit static allowlist.
