@@ -41,8 +41,11 @@ Validated baseline: NAM-only Jan-2013 Uinta Basin, 12/4 km nested, WPS
 
 The drainage-canyons-gigawatts 24-tracer compile release is verified and
 tagged; its provenance record is in `doc/BRC_WRF_RESEARCH_BUILDS.md`.
-Model pre-flight tests and the 48-hour reference run
-remain separate gates. Pelican controls, feedback comparisons and approved
+The brc-tools theory dependencies are merged. Current case preparation and
+next-iteration review items are in the
+[experiment README](../ub-wx/experiments/drainage-canyons-gigawatts/README.md).
+Model pre-flight tests and the 48-hour reference run remain separate gates.
+Pelican controls, feedback comparisons and approved
 terrain/physics treatments are complete through quicklooks and await human
 science review. Exact state and evidence belong in the experiment todo.
 

@@ -86,11 +86,12 @@ reuse; it passed the compile acceptance checks below.
 - Iteration 6 is a design/theory report with geogrid and preparatory evidence;
   its numerical predictions and 5.4-day runtime estimate are not WRF results.
   The measured pre-flight half is still pending.
-- Live GitHub checks on 6 October confirm brc-tools PRs
-  [66](https://github.com/Bingham-Research-Center/brc-tools/pull/66) and
-  [68](https://github.com/Bingham-Research-Center/brc-tools/pull/68) are both
-  open; the latter is stacked on the former. The handoff's dependency merges
-  are still outstanding. The live ub-wx experiment branch matches `9a6c78ac`.
+- At the compile review, brc-tools PRs 66/68 were still open. The later
+  preparation audit confirms both merged with review fixes 69; theory was
+  regenerated on `11eccf1`. Live brc-tools main is `c223bcc` (explicit mean
+  reference support), with the published nocolons reader fix `49817aa` in PR 72 (21 tests passed). Keep
+  theory and execution/diagnostic pins distinct. Current preparation and
+  report policy: `../ub-wx/experiments/drainage-canyons-gigawatts/README.md`.
 - The handoff says its patch `--check` already passes. On the unmodified
   `5bbcdb70` tree it exits 1 with eight tracers. Its checker also only counts
   declarations, without validating exact package membership. The maintained
@@ -110,15 +111,15 @@ reuse; it passed the compile acceptance checks below.
   the imported seeder intends this but has not been proven on a restart.
   Pair-temperature fields inherit generic "Dimensionless" Registry metadata;
   the experiment's mapping must declare that even-numbered fields have units K.
-- Hypothesis 2's pool-depth trigger does not distinguish terrain treatments;
-  the report proposes a canyon-flux trigger. Hypotheses 8/9 remain placeholders.
-  These require author decisions before treatment selection or paper claims.
-- The lake's area/alignment mismatch and uncertain non-Flaming-Gorge ice state
-  remain inputs to review. Terrain slope predictors do not prove night-time
+- JRL accepted the H2 flux trigger during closure: Lodore below 10% of
+  matched truth, with pool depth supporting evidence; carved first if met.
+  H7 retains 1 K with continuous effect/supply sensitivity; H8/H9 are exploratory.
+- Native MODIS alignment audit 16101184 supports the unshifted grid (99.97%
+  category agreement). Shoreline differences and uncertain non-Flaming-Gorge
+  ice remain scientific sensitivities. Terrain predictors do not prove night
   stability, and spawning a nest from a restart remains untested here.
-- The September `brc-cases/specs/gigawatts_600m.domain.toml` is untracked and
-  stale. It is preserved and excluded from this build. Adopt the October
-  handoff spec during case preparation, with a saved copy of the old draft.
+- The September domain draft was preserved under the durable closure
+  control before adopting the October `brc-cases/specs/gigawatts_600m.domain.toml`.
 
 The reference design is one HRRR 18Z 26 January 2025 forecast through +48 h;
 3 km / 600 m, enlarged d01 to the divides, one-way nesting, 100 levels, 9/3 s;
@@ -156,3 +157,33 @@ this build session. The next case/control packet must adopt this explicit
 build root and manifest; historical manifests and the June binaries retain
 their existing paths. The stale untracked September gigawatts spec was left
 untouched.
+
+## Gigawatts control acceptance: 6 October closure
+
+JRL requested autonomous closure and bounded pre-flight preparation. The new
+control is `$WRF_ARCHIVE/gigawatts_600m/control/closure_20261006`; case manifest
+`brc-cases/gigawatts_600m.case.yaml` pins this compiled build explicitly.
+Audit 16101154 rehashed all six build entries and 90 runtime entries successfully,
+rechecked generated tracer metadata, and copied the release manifest into control.
+WPS is separately pinned at source `335c76a111f84503e8b963abaf273ea8053645bb`
+with executable/configuration hashes. The September domain draft and inherited
+documentation edits were saved before adopting the October domain.
+
+`prepare_gigawatts.py` renders geometry through domain_calc and patches the
+accepted Green River namelist with declared October settings. Its generated
+GFS Vtable excludes SKINTEMP, SNOW and SNOWH; eight soil fields and LANDSEA remain.
+Model tests and initial-field checks retain their distinct evidence gates. The
+48-hour science run remains unapproved pending measured costs and stability.
+
+Forcing job 16101170 passed the 99-file manifest and 49-hour coverage checks;
+WPS job 16101416 consumes the pinned source and rechecks product/time coverage
+and every hash. `gigawatts_real.slurm` applies the lake state only to local
+copies and refuses failed metgrid or initial-field checks. Eight ranks fit
+initialization into the available node slot; the smoke comparisons remain at
+56 ranks on notch392. `gigawatts_smoke.slurm` prepares one bounded test at a
+time, with a six-hour backstop and no automatic resubmission. It checks actual
+output clocks, all-rank logs, and records integration/writing costs. The seeded
+variant runs two 15-minute segments and checks transported pair ratios, held
+tags, partition sum and dilution separately from initialization. Regression
+job 16101447 passed 28 controller, clock and transport tests. These synthetic
+checks are not substitutes for the pending model evidence.

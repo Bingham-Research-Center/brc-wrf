@@ -18,12 +18,25 @@ attempt are retained in the evidence. The June executables are preserved.
 
 `john/wrf` is now the sole active John branch and GitHub default; eight
 published archive tags preserve retired tips, and `master` stays frozen.
-Build paths, manifest, branch audit and outstanding science issues are in
-`BRC_WRF_RESEARCH_BUILDS.md`. Next: adopt the October case spec and pinned
-build into a control packet, settle the tracer-cost comparison and remaining
-science/input checks, then seek approval for model pre-flight submissions.
-The 48-hour run remains a later gate. brc-tools PRs 66/68 were still open at
-the live review.
+Build provenance is in `BRC_WRF_RESEARCH_BUILDS.md`. The October case now has
+`brc-cases/gigawatts_600m.case.yaml`, `prepare_gigawatts.py`, and separate WPS
+real and bounded smoke wrappers. JRL's 6 October closure request authorizes bounded preparation
+through pre-flight tests; the 48-hour science run remains a later decision.
+Control: `$WRF_ARCHIVE/gigawatts_600m/control/closure_20261006`.
+
+Audit job 16101154 rechecked the released executable/runtime hashes, geogrid,
+and lake mapping; 21 sunset-reader tests passed. The rendered namelist/128-site check passed in 16101362; the expanded controller,
+clock and tracer-transport regression suite passed all 28 tests in 16101447.
+The native MODIS lake audit (16101184) supports the unshifted accepted grid.
+Staging 16101170 completed: all 99 files hashed, HRRR 18Z 26 January 2025
+f00-f48 nat+sfc at all 49 times, GFS soil valid at initialization. WPS 16101416
+is running. The real wrapper uses eight ranks; timed WRF tests retain 56 ranks.
+WPS consumes its complete contract and hashes; real consumes accepted WPS fields.
+
+Theory/staging source is `11eccf1`; tested diagnostic source `49817aa` is already
+published and now has PR 72. Model source remains the released `5a68435c`.
+Current execution status and Iteration 7 review:
+`../ub-wx/experiments/drainage-canyons-gigawatts/README.md`.
 
 ## Completed Pelican Work Awaiting Review
 

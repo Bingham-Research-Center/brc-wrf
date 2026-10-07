@@ -117,21 +117,14 @@ a proven NetCDF-capable render environment with `PYTHONPATH` pointed at
 
 ## Active Experiment Snapshot
 
-- Drainage-canyons-gigawatts: 24-tracer compile verified on 6 October 2026;
-  build/provenance owner is `doc/BRC_WRF_RESEARCH_BUILDS.md`. Model tests and
-  the 48-hour run remain separate gates. Canonical source line: `john/wrf`.
-- The Jan-2013 NAM proof is validated; use it as the small reference case.
-- Pelican NAM/GFS controls, feedback comparisons, custom-3s terrain, and the
-  approved terrain treatments are complete through quicklooks. The current
-  stop is human science review; no new Pelican WRF treatment is authorized.
-- RAP remains WPS-field-adequacy-only; ERA5 is locally blocked; FNL and
-  GEFSv12+NAM require an explicit revival decision. Exact status, evidence,
-  job IDs, paths, and next steps belong in `doc/BRC_WRF_EXPERIMENT_TODO.md`.
-- John-owned WPS is
-  `/uufs/chpc.utah.edu/common/home/lawson-group6/jrlawson/wrf_build/WPS`.
-  Check the WRF executable path from rendered control evidence on disk.
-- Fresh `brc-tools` staging emits `manifest_<case>.json` and
-  `contract_<case>.json`; `brc-wrf` consumes those sidecars.
+- Gigawatts: 24-tracer compile released; model pre-flight and science run are
+  separate gates. Build provenance: `doc/BRC_WRF_RESEARCH_BUILDS.md`; current
+  cross-repo preparation: `../ub-wx/experiments/drainage-canyons-gigawatts/README.md`.
+- Pelican: completed controls/treatments await science review; no new run
+  authorized. Other cases and source verdicts: `doc/BRC_WRF_EXPERIMENT_TODO.md`.
+- RAP is WPS-only; ERA5 is blocked; FNL/GEFS require explicit revival.
+- WRF/WPS roots come from accepted control evidence; forcing comes from
+  verified brc-tools manifest/contract sidecars.
 
 ## Login-Safe Versus Off-Login
 
