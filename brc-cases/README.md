@@ -48,6 +48,14 @@ differences for review. Six inherited-tracer regressions passed in 16103469.
 There is no production continuation or restart pruning; actual model proof is
 still required.
 
+`gigawatts_init_probe.slurm` uses the eight free ranks for initialization and
+three coarse steps (27 simulated seconds), after real/initial-field acceptance.
+It suppresses history/auxiliary output, preserves the accepted inputs, verifies
+all-rank logs and the exact end time, and has a 30-minute wall limit. This can
+expose initialization defects while the full node is occupied. It provides no
+performance, transport or nocturnal-stability acceptance; the matched tests
+retain their 56-rank layout.
+
 The checkpoint is intentionally small:
 
 1. Write or edit a `*.case.yaml` file.
