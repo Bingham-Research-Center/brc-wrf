@@ -3,6 +3,24 @@
 This directory holds BRC-local case manifests and the cheap helper used to
 review them before any WPS, WRF, or Slurm work starts.
 
+## Gigawatts bounded preparation
+
+`gigawatts_600m.case.yaml` and `prepare_gigawatts.py` render the October two-domain
+packet. Separate `gigawatts_wps.slurm`, `gigawatts_real.slurm` and
+`gigawatts_smoke.slurm` stop at their respective evidence gates. Current jobs,
+source pins and approval scope are recorded in the ub-wx experiment README.
+
+`prepare_delayed_static.py` prepares the later d03 static-only input from an
+actual real.exe file. It audits the released build's complete Registry include
+graph and uses otherwise empty input stream 6 with an explicit static allowlist.
+It preserves the original, records hashes and field selection, and changes only
+the copy's Times/START_DATE to the activation time. It excludes atmospheric,
+tracer, snow/ice and transient surface/soil fields. Required namelist settings
+are emitted in its provenance JSON; the three-domain packet and actual model
+inheritance still require review. Job 16102225 passed four synthetic tests and
+the released Registry audit. Details and timing are in
+`../ub-wx/experiments/drainage-canyons-gigawatts/handoff/delayed_nest_review.md`.
+
 The checkpoint is intentionally small:
 
 1. Write or edit a `*.case.yaml` file.

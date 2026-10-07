@@ -32,6 +32,11 @@ Staging 16101170 completed: all 99 files hashed, HRRR 18Z 26 January 2025
 f00-f48 nat+sfc at all 49 times, GFS soil valid at initialization. WPS 16101416
 is running. The real wrapper uses eight ranks; timed WRF tests retain 56 ranks.
 WPS consumes its complete contract and hashes; real consumes accepted WPS fields.
+The independent runtime source capsule passed in 16101816. WRF's `* export-ignore`
+attribute makes a normal git archive empty; the capsule therefore extracts the
+exact committed brc-cases blobs and records hashes. Static-only delayed-nest
+packet tests passed in 16102225 (four tests plus compiled Registry stream-6 audit);
+actual d03 initialization and model activation remain pending.
 
 Theory/staging source is `11eccf1`; tested diagnostic source `49817aa` is already
 published and now has PR 72. Model source remains the released `5a68435c`.
