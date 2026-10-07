@@ -24,28 +24,38 @@ real and bounded smoke wrappers. JRL's 6 October closure request authorizes boun
 through pre-flight tests; the 48-hour science run remains a later decision.
 Control: `$WRF_ARCHIVE/gigawatts_600m/control/closure_20261006`.
 
-Audit job 16101154 rechecked the released executable/runtime hashes, geogrid,
-and lake mapping; 21 sunset-reader tests passed. The rendered namelist/128-site check passed in 16101362; the expanded controller,
-clock, tracer-transport, initial-field and sunset suite passed all 42 tests in
-16103278 ( including failed-render launch rejection); actual initial
-metgrid fields also passed.
-The native MODIS lake audit (16101184) supports the unshifted accepted grid.
-Staging 16101170 completed: all 99 files hashed, HRRR 18Z 26 January 2025
-f00-f48 nat+sfc at all 49 times, GFS soil valid at initialization. WPS 16101416
-is running. The real wrapper uses eight ranks; timed WRF tests retain 56 ranks.
-WPS consumes its complete contract and hashes; real consumes accepted WPS fields.
-The current runtime source capsule passed in 16103353 (ub-wx d55373b, brc-wrf
-71d166db); its predecessor from 16101816 is preserved separately. WRF's `* export-ignore`
-attribute makes a normal git archive empty; the capsule therefore extracts the
-exact committed brc-cases blobs and records hashes. Static-only delayed-nest
-packet tests passed in 16102225 (four tests plus compiled Registry stream-6 audit);
-actual d03 initialization and model activation remain pending. The bounded
-front-static wrapper is prepared; its three namelist regressions passed in
-16103167. A separately pinned WPS timeout continuation is queued as 16103054;
-it requires a full overlap comparison before accepting the remaining fields.
-The fixed delayed-test wrapper passed six tracer-check regressions in 16103469;
-it requires accepted transport and the actual static-packet review. It keeps
-activation inside one launch rather than using the generic conveyor boundary.
+Audit 16101154 verified the released executable/runtime hashes, generated
+tracers, accepted geogrid and lake mapping. The native MODIS comparison
+supports the unshifted grid. Staging 16101170 verified all 99 HRRR/GFS-soil
+files. WPS 16103054 accepted all 98 hourly metgrid files after the original
+two-hour timeout, with zero numerical difference across 87 overlap fields.
+Real.exe 16104328 and independent initial/boundary audit 16104808 passed:
+grid A, frozen soil under snow, prescribed lake state and all 24 tracers.
+
+Runtime capsule v5 passed in 16104312 (ub-wx `d55373b`, brc-wrf `fee46ae6`);
+older capsules remain preserved. The group-only correction moves
+`tracer_pblmix` to physics; all 139 compiled namelist keys pass and no value
+changed. The focused controller/clock/field/transport/producer suite has
+42 passing tests (16103278), including failed-render launch rejection.
+
+Initialization probe 16105036 passed: three coarse steps, 27 simulated
+seconds, eight ranks, exact endpoint and no CFL/NaN/fatal messages. It
+supplies initialization evidence only. Front-static WPS/real 16105035
+completed the executables but stopped on an overly strict land-use check.
+Recheck 16105842 accepted the existing files: exactly 375 inland-lake cells
+normalize category 21 to 17 under released real.exe, with no other category
+change. Four regressions and all 142 delayed-namelist groups pass. The
+reviewed packet excludes transient fields and uses empty input stream 6.
+No forcing/model rerun was needed for this correction.
+
+The bounded 56-rank jobs on notch392 are queued in order: baseline24
+16105749, control0 16105750, TKE 16105751, seeded two-segment transport
+16105752, and delayed-front activation 16105867. Each requires its
+predecessor's accepted completion; the delayed wrapper also requires the
+actual static-packet review. It keeps 19:15 activation inside one fixed
+19:00–20:15 launch. No job resubmits or continues into production. The
+full-node tests await resources; measured cost/transport/stability and
+surface continuity remain unaccepted until their actual evidence passes.
 
 Theory/staging source is `11eccf1`; tested diagnostic source `49817aa` is already
 published and now has PR 72. Model source remains the released `5a68435c`.

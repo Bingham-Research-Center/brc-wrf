@@ -49,3 +49,19 @@ def test_unknown_two_value_setting_requires_review(packet):
     base,ctl=packet
     with pytest.raises(AssertionError,match='unreviewed'):
         namelist(base.replace('&physics','&physics\n unknown_setting = 1, 2,'),ctl)
+
+
+def test_real_normalizes_only_inland_lakes():
+    import numpy as np
+    from prepare_gigawatts_front_static import check_static_landuse
+    reference=np.array([[10,21,17],[5,21,2]])
+    actual=np.array([[10,17,17],[5,17,2]])
+    report=check_static_landuse(actual,reference,islake=21,iswater=17)
+    assert report['normalized_lake_cells']==2 and report['other_changes']==0
+    for index,replacement in [((0,0),5),((0,1),15)]:
+        bad=actual.copy();bad[index]=replacement
+        with pytest.raises(AssertionError,match='unexpected static land-use change'):
+            check_static_landuse(bad,reference,islake=21,iswater=17)
+    bad=np.ma.array(actual,mask=False);bad.mask[0,0]=True
+    with pytest.raises(AssertionError,match='masked'):
+        check_static_landuse(bad,reference,islake=21,iswater=17)

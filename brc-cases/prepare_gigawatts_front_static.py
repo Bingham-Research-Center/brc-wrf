@@ -131,8 +131,42 @@ def setup(control):
     print(run)
 
 
-def finish(control):
+def check_static_landuse(actual, reference, *, islake, iswater):
+    """Recognize only WRF real's lake-to-water category normalization.
+
+    The released module_initialize_real.F first folds inland-lake fractions
+    into ISWATER, then derives IVGTYP/LU_INDEX for surface_input_source=1.
+    Any other land-use change (including ice conversion) needs review.
+    """
+    assert islake == 21 and iswater == 17, 'expected accepted MODIS categories'
+    for value in (actual, reference):
+        assert not np.ma.getmaskarray(value).any(), 'masked land-use category'
+        assert np.isfinite(value).all(), 'nonfinite land-use category'
+    expected=np.where(reference == islake, iswater, reference)
+    np.testing.assert_array_equal(actual, expected, err_msg='unexpected static land-use change')
+    return {'source_rule':'module_initialize_real.F:2869-2871,3048-3055,3255',
+        'surface_input_source':1, 'lake_category':islake, 'water_category':iswater,
+        'normalized_lake_cells':int(np.count_nonzero(reference == islake)),
+        'other_changes':0}
+
+
+def finish(control, prepared_job=None):
     source,wps,build,e,run,front=paths(control)
+    if prepared_job is not None:
+        assert re.fullmatch(r'[0-9]+',prepared_job), 'invalid preparation job'
+        original=control/('front_static_'+prepared_job)
+        preparation=json.loads((original/'preparation.json').read_text())
+        assert preparation['source_real'] == str(source), 'accepted parent real changed'
+        assert preparation['source_wps'] == str(wps), 'accepted WPS changed'
+        assert preparation['front_geogrid'] == str(front), 'front geogrid changed'
+        run=Path(preparation['run_dir'])
+        assert run == source.parent/('front_static_'+prepared_job)
+        e.mkdir()
+        for name in ('preparation.json','namelist.wps','namelist.static_real.input','namelist.delayed.input'):
+            shutil.copy2(original/name,e/name)
+        (e/'recheck.json').write_text(json.dumps({'preparation_job':prepared_job,
+            'review_job':os.environ['SLURM_JOB_ID'], 'preserved_evidence':str(original),
+            'reason':'recognize released real.exe inland-lake category normalization; no model rerun'},indent=2)+'\n')
     ctl=load_module(control/'conveyor_ctl.py')
     scan=ctl.scan_all_rsl(run/'real',int(os.environ['SLURM_NTASKS']))
     assert not scan['missing_ranks'] and not any(scan.get(k) for k in ('cfl','nan','fatal')),scan
@@ -143,11 +177,17 @@ def finish(control):
         clocks=list(map(str,chartostring(nc['Times'][:])))
         assert clocks in [['2025-01-26_18:00:00'],['2025-01-26_18_00_00']],clocks
         with Dataset(run/'wps/geo_em.d03.nc') as geo:
-            for wrf_name,geo_name in [('HGT','HGT_M'),('XLAT','XLAT_M'),('XLONG','XLONG_M'),('LU_INDEX','LU_INDEX')]:
+            for wrf_name,geo_name in [('HGT','HGT_M'),('XLAT','XLAT_M'),('XLONG','XLONG_M'),('LANDMASK','LANDMASK')]:
                 np.testing.assert_allclose(nc[wrf_name][:],geo[geo_name][:],rtol=0,atol=1e-5,err_msg=wrf_name)
+            nml=(e/'namelist.static_real.input').read_text()
+            assert re.search(r'^\s*surface_input_source\s*=\s*1\s*,?\s*$',nml,re.M)
+            landuse=check_static_landuse(nc['LU_INDEX'][:],geo['LU_INDEX'][:],
+                islake=int(geo.getncattr('ISLAKE')),iswater=int(geo.getncattr('ISWATER')))
+            np.testing.assert_array_equal(nc['IVGTYP'][:],nc['LU_INDEX'][:])
     result=prepare(run/'real/wrfinput_d03',e/'wrfinput_d03',build/'Registry',
                    '2025-01-26_19:15:00',control/'iofields.txt')
-    result.update(job=os.environ['SLURM_JOB_ID'],control=str(e),accepted_static_packet=True,
+    result.update(job=os.environ['SLURM_JOB_ID'],preparation_job=prepared_job or os.environ['SLURM_JOB_ID'],
+        control=str(e),accepted_static_packet=True,landuse_normalization=landuse,
         delayed_namelist_sha256=sha(e/'namelist.delayed.input'),
         remaining='Copy accepted seeded parent restarts; run and inspect delayed d03 activation, inheritance and surface continuity.')
     (e/'acceptance.json').write_text(json.dumps(result,indent=2)+'\n')
@@ -159,9 +199,14 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('stage',choices=('setup','finish'))
     p.add_argument('--control',type=Path,required=True)
+    p.add_argument('--prepared-job',help='recheck completed WPS/real files without rerunning them')
     a=p.parse_args()
     assert os.environ.get('SLURM_JOB_ID'),'NetCDF inspection belongs on Slurm'
-    (setup if a.stage=='setup' else finish)(a.control)
+    if a.stage=='setup':
+        assert a.prepared_job is None
+        setup(a.control)
+    else:
+        finish(a.control,a.prepared_job)
 
 if __name__=='__main__':
     main()
