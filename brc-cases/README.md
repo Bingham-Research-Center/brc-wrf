@@ -37,6 +37,17 @@ static file plus the 19:00/19:15/20:15 delayed namelist. Three namelist regressi
 tests passed in job 16103167. No wrf.exe integration occurs; actual static-file
 and delayed-activation evidence remain independent acceptance stages.
 
+`gigawatts_delayed.slurm` makes one bounded 75-minute model launch on 56 ranks
+(maximum eight wall-hours), with the d03 activation strictly inside it. It
+requires accepted real/initial fields, accepted seeded transport, and the
+matching static-packet review marker. The generic conveyor splits at domain
+activation boundaries and must not be substituted for this test. The helper
+copies/hashes parent restarts, checks all-rank logs, exact parent/d03 clocks,
+static interior terrain and inherited tracer bounds, and records surface-state
+differences for review. Six inherited-tracer regressions passed in 16103469.
+There is no production continuation or restart pruning; actual model proof is
+still required.
+
 The checkpoint is intentionally small:
 
 1. Write or edit a `*.case.yaml` file.

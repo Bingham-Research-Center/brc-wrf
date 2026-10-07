@@ -26,14 +26,15 @@ Control: `$WRF_ARCHIVE/gigawatts_600m/control/closure_20261006`.
 
 Audit job 16101154 rechecked the released executable/runtime hashes, geogrid,
 and lake mapping; 21 sunset-reader tests passed. The rendered namelist/128-site check passed in 16101362; the expanded controller,
-clock, tracer-transport, initial-field and sunset suite passed all 41 tests in
-16102740; actual initial metgrid fields also passed.
+clock, tracer-transport, initial-field and sunset suite passed all 42 tests in
+16103278 ( including failed-render launch rejection); actual initial
+metgrid fields also passed.
 The native MODIS lake audit (16101184) supports the unshifted accepted grid.
 Staging 16101170 completed: all 99 files hashed, HRRR 18Z 26 January 2025
 f00-f48 nat+sfc at all 49 times, GFS soil valid at initialization. WPS 16101416
 is running. The real wrapper uses eight ranks; timed WRF tests retain 56 ranks.
 WPS consumes its complete contract and hashes; real consumes accepted WPS fields.
-The current runtime source capsule passed in 16102849 (ub-wx 43a2317, brc-wrf
+The current runtime source capsule passed in 16103353 (ub-wx d55373b, brc-wrf
 71d166db); its predecessor from 16101816 is preserved separately. WRF's `* export-ignore`
 attribute makes a normal git archive empty; the capsule therefore extracts the
 exact committed brc-cases blobs and records hashes. Static-only delayed-nest
@@ -42,6 +43,9 @@ actual d03 initialization and model activation remain pending. The bounded
 front-static wrapper is prepared; its three namelist regressions passed in
 16103167. A separately pinned WPS timeout continuation is queued as 16103054;
 it requires a full overlap comparison before accepting the remaining fields.
+The fixed delayed-test wrapper passed six tracer-check regressions in 16103469;
+it requires accepted transport and the actual static-packet review. It keeps
+activation inside one launch rather than using the generic conveyor boundary.
 
 Theory/staging source is `11eccf1`; tested diagnostic source `49817aa` is already
 published and now has PR 72. Model source remains the released `5a68435c`.
