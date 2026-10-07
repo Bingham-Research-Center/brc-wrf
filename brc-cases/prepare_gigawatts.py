@@ -50,8 +50,8 @@ def main():
         'history_interval': [60,60], 'auxhist2_interval': [0,20], 'auxhist4_interval': [0,1], 'auxhist7_interval': [0,20],
         'io_form_auxhist7': 2, 'frames_per_auxhist7': [1,1], 'iofields_filename': ['"iofields.txt"','"iofields.txt"']},
       'domains': {'max_ts_locs':128, 'max_ts_level':60},
-      'physics': {'mp_physics':[8,8], 'tke_budget':[0,1], 'bl_mynn_tkeadvect':[False,False]},
-      'dynamics': {'base_temp':268.0, 'tracer_opt':[2,2], 'tracer_adv_opt':[1,1], 'tracer_pblmix':[1,1],
+      'physics': {'mp_physics':[8,8], 'tracer_pblmix':[1,1], 'tke_budget':[0,1], 'bl_mynn_tkeadvect':[False,False]},
+      'dynamics': {'base_temp':268.0, 'tracer_opt':[2,2], 'tracer_adv_opt':[1,1],
                    'diff_6th_slopeopt':[0,1], 'diff_6th_thresh':[0.10,0.05]},
     }
     for group, settings in groups.items():

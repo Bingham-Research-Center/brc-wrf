@@ -56,6 +56,13 @@ expose initialization defects while the full node is occupied. It provides no
 performance, transport or nocturnal-stability acceptance; the matched tests
 retain their 56-rank layout.
 
+`check_namelist_registry.py` verifies key placement against the released
+build's generated namelist statements and its manual quilting declaration.
+Job 16104097 exposed `tracer_pblmix` in the wrong group; the renderer now puts
+it under physics, with the same value 1. Three regression tests passed in
+16104241. The real wrapper runs this check before applying lake edits. It
+checks groups and duplicate/unknown keys, not Fortran value syntax or science.
+
 The checkpoint is intentionally small:
 
 1. Write or edit a `*.case.yaml` file.

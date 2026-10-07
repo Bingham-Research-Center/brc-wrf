@@ -45,6 +45,7 @@ cp "$BUILD/main/real.exe" "$RUN/real.exe"
 cp "$BUILD/main/wrf.exe" "$RUN/wrf.exe"
 cp "$GW_CONTROL/namelist.base.input" "$RUN/namelist.input"
 cp "$GW_CONTROL/iofields.txt" "$GW_CONTROL/tslist" "$RUN/"
+"$PY" -B "$GW_CONTROL/check_namelist_registry.py" --build "$BUILD" --namelist "$RUN/namelist.input" --output "$GW_CONTROL/logs/real_${SLURM_JOB_ID}_namelist_groups.json"
 "$PY" -B "$GW_EXPERIMENT/analysis/iter5/wrf_lake_twin_outline.py" prepare --state observed --state-table "$GW_EXPERIMENT/data/iter6/lake_ice_fraction_d02_20250126.csv" --window -111.50 -107.70 39.15 41.75 --met-em-dir "$GW_WPS_DIR" --pattern 'met_em.d0?.2025-01-26_18*' --out "$RUN/lake_edits" --write
 for f in "$RUN/lake_edits"/met_em.d0*.nc; do ln -sfn "$f" "$RUN/$(basename "$f")"; done
 "$PY" -B "$GW_CONTROL/preflight_check.py" metgrid --met-em-dir "$RUN" > "$GW_CONTROL/logs/real_${SLURM_JOB_ID}_metgrid_check.txt"
