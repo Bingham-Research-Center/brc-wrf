@@ -29,6 +29,14 @@ inheritance still require review. Job 16102225 passed four synthetic tests and
 the released Registry audit. Details and timing are in
 `../ub-wx/experiments/drainage-canyons-gigawatts/handoff/delayed_nest_review.md`.
 
+`gigawatts_front_static.slurm` and `prepare_gigawatts_front_static.py` derive
+that d03 input only after the two-domain real/initial-field checks pass. They
+compare parent geometry with the accepted front geogrid, process two d03
+forcing frames with eight MPI ranks, run real.exe, and prepare the restricted
+static file plus the 19:00/19:15/20:15 delayed namelist. Three namelist regression
+tests passed in job 16103167. No wrf.exe integration occurs; actual static-file
+and delayed-activation evidence remain independent acceptance stages.
+
 The checkpoint is intentionally small:
 
 1. Write or edit a `*.case.yaml` file.
