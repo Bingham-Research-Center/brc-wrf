@@ -1,0 +1,128 @@
+# gigawatts_600m -- DRAFT spec, revised by the ub-wx pre-flight (14 Sep 2026); supersedes the
+# untracked 11 Sep draft in brc-cases/specs/. NOT RUN. Footprint A, 3 km -> 600 m, 5:1, one-way:
+# the only ladder with a measured zero-CFL record on this terrain (docs/DOMAINS.md), one thing
+# changed (the footprint), sized for the whole airshed: every rim catchment >= 50 km2 whole at a
+# 15 km inset except two small south-rim ones (255 km2 outside), Flaming Gorge 100 % inside,
+# the five ports on the boundary (PRE-FLIGHT-REPORT.pdf, domain sufficiency).
+#
+# WHY 15 km AND NOT 30 OR 5: the relaxation zone is 5 d01 cells (15 km of d01, 3 km of d02
+# cells) and fine-scale features need of order 10-20 parent cells to spin up downstream of the
+# nest boundary; 30 km was a policy that cut 7 catchments, 5 km would put targets in the
+# spin-up fetch. domain_calc.py warns (does not fail) below waypoint_min_inset_km.
+#
+# STABILITY: the 30 m DEM block-averaged to 600 m has a max slope of 33.2 deg inside this box
+# (40.664 N, -110.168 W), inside the 35 deg envelope; 500 m would reach 37.0 deg (2 cells) and a
+# whole-airshed 200 m nest 54.6 deg (5741 cells) -- both priced and rejected in the report.
+# Stage B still scans geo_em.d02 (HGT_M) and diffs it against the source at every seam.
+#
+# TERRAIN: rebuilt into GROUP storage on 2026-10-02 from the 1-as 3DEP tiles + a one-tile ring,
+# bounds -111.8 39.05 -107.4 41.9 (the 14 Sep build had no source for 41-42 N, -112..-111, inside
+# this d02; Iteration 5 errata): no missing cell, none more than 29 m off the block-averaged
+# source. geog_data_path is the short alias $WRF_ARCHIVE/geog3s: WPS holds a dataset path in 128
+# characters and the longest rel_path in GEOGRID.TBL is 49.
+#
+# SEAM RULE (2 Oct 2026, Iteration 5): stand_lon = ref_lon = -110.0 and an ODD coarse e_we.
+# This WPS build leaves every field without data at any cell whose centre has the float32
+# longitude -110.00003051757812 (two float steps west of the -110 meridian, where the 10-degree
+# tiles of the standard datasets and the 1-degree custom topography tiles share a seam): LANDMASK
+# -1, land use "water", HGT_M 0 m before smoothing. All 23 such cells in the 64 archived geo_em
+# files sit on that one value (data/iter5/geo_em_seam_scan_*.csv). The first preview of this
+# footprint (stand_lon -109.60, job 15988050) had two: a 1158 m hole on the Uinta crest at
+# 40.908 N and a 716 m hole in Desolation Canyon at 39.721 N. With -110 as the central meridian it
+# is a straight grid line, and with an odd e_we that line is a cell EDGE of d01 and of every nest,
+# so no centre comes within half a cell of it. Do not move ref_lon or make e_we even without
+# re-running geogrid and checking LANDMASK is 0 or 1 everywhere.
+#
+# D01 TO THE DIVIDES (JRL, 3 Oct 2026, Iteration 5 round 2): the coarse domain grows from
+# 201 x 200 to 227 x 256 about the SAME centre (37.0-43.9 N, -114.0..-106.0 at 41 N), so the
+# Wind River, Wyoming Range and Park Range crests are inside and no HRRR boundary crosses the
+# Flaming Gorge or Yampa basins: the head of the Flaming Gorge pool is then WRF's own. Both
+# dimensions keep their parity (200 -> 226 cells, 199 -> 255), so the d01 lattice is unchanged
+# and d02's cells are identical; i/j_parent_start move by +13/+28. Cost +2-3 % (d01 is ~5 %).
+# The preview of this spec must show d02's HGT_M identical to the 2 Oct packet (job 15989018).
+#
+# EVENT: init 18Z 26 Jan 2025 (11 MST), 48 h to 18Z 28 Jan: both nights, sunrise 2 and the
+# morning transition, one HRRR extended cycle (f00-f48 verified on AWS), no splice. The screen
+# (PRE-FLIGHT-REPORT.pdf, event; regenerated 2026-09-15 after the night-length fix): night 1
+# (sunset 00:29Z 27 Jan) clean -- 650 hPa 2.8 m/s, floor cloud 22 %, KVEL CLR all night,
+# PC101 100 % down-canyon 20-06 MST at -14.8 C; night 2 clean with an easterly aloft --
+# 650 hPa 6.9 m/s from 98 deg, cloud 27 %, KVEL CLR, PC101 98 %, -15.4 C; the night before
+# init was cloudy and windy (spin-up, not event); catchment snow 20 cm (HRRR) / 55-80 cm
+# (SNOTEL), floor bare.
+
+[case]
+name = "gigawatts_600m"
+
+[grid]
+dx = [3000.0, 600.0]
+parent_grid_ratio = [1, 5]
+parent_time_step_ratio = [1, 3]
+time_step = 9.0
+ref_lat = 40.45
+ref_lon = -110.0
+truelat1 = 39.0
+truelat2 = 42.0
+stand_lon = -110.0
+nest_margin_cells = 30
+geog_data_res = ["default", "brc_custom_3s+default"]
+geog_data_path = "$WRF_ARCHIVE/geog3s/"     # expanded by the submitter: WPS needs a literal path of at most 128 - 49 characters
+
+[coarse]
+e_we = 227     # odd (seam rule); was 201 until 3 Oct 2026
+e_sn = 256     # was 200; same parity, same centre
+
+[target]
+bbox = [-111.50, 39.15, -107.70, 41.75]
+waypoint_min_inset_km = 15.0
+
+[target.waypoints]
+dry_fork_pc101       = [-109.60627, 40.52349]   # the truth site (PC101)
+ouray                = [-109.688, 40.055]       # the Basin sink
+kings_point_kpru1    = [-109.10344, 40.85975]   # Browns Park
+manila_ucc25         = [-109.72754, 40.98347]
+daniels_summit       = [-111.250, 40.290]       # Wasatch-lee divide (a divide, not a target: inset may fall short)
+book_cliffs_crest    = [-109.50, 39.45]
+gate_lake_fork             = [-110.34256, 40.39426]   # Pigeon Water Creek-Lake Fork River, 795 km2, 2000 m crossing
+gate_duchesne_farm_creek   = [-110.72410, 40.36472]   # Farm Creek-Duchesne River, 795 km2, 2000 m crossing
+gate_strawberry            = [-110.88104, 40.13011]   # Middle Strawberry River, 793 km2, 2000 m crossing
+gate_rock_creek            = [-110.51091, 40.38185]   # Rock Creek, 531 km2, 2000 m crossing
+gate_uinta_river           = [-110.01533, 40.50842]   # Lower Uinta River, 523 km2, 2000 m crossing
+gate_currant_creek         = [-110.87600, 40.19254]   # Currant Creek, 377 km2, 2000 m crossing
+gate_east_willow_creek_willow_creek = [-109.64741, 39.40465]   # East Willow Creek-Willow Creek, 350 km2, 2000 m crossing
+gate_whiterocks            = [-109.92451, 40.51950]   # Whiterocks River, 311 km2, 2000 m crossing
+gate_avintaquin            = [-110.76374, 40.03965]   # Avintaquin Creek, 298 km2, 2000 m crossing
+gate_dry_fork              = [-109.68254, 40.56024]   # Dry Fork, 264 km2, 2000 m crossing
+gate_ashley_creek          = [-109.62454, 40.60659]   # Upper Ashley Creek, 250 km2, 2000 m crossing
+gate_nine_mile             = [-110.44306, 39.77664]   # Upper Nine Mile Creek, 232 km2, 2000 m crossing
+gate_hill_creek            = [-109.73557, 39.50079]   # Hill Creek, 206 km2, 2000 m crossing
+gate_dry_gulch             = [-110.17066, 40.43153]   # Dry Gulch Creek, 194 km2, 2000 m crossing
+gate_red_creek             = [-110.82267, 40.23301]   # Red Creek, 188 km2, 2000 m crossing
+gate_main_canyon           = [-109.44165, 39.55371]   # Main Canyon, 166 km2, 2000 m crossing
+gate_antelope_creek        = [-110.42776, 40.01551]   # Antelope Creek, 145 km2, 2000 m crossing
+gate_nine_mile_2           = [-110.44265, 39.82772]   # Upper Nine Mile Creek, 145 km2, 2000 m crossing
+gate_big_brush_creek       = [-109.54324, 40.64396]   # Big Brush Creek, 123 km2, 2000 m crossing
+gate_bitter_creek          = [-109.15274, 39.55975]   # Bitter Creek, 122 km2, 2000 m crossing
+gate_little_brush_creek    = [-109.41575, 40.64904]   # Little Brush Creek, 118 km2, 2000 m crossing
+gate_strawberry_2          = [-110.82162, 40.09733]   # Middle Strawberry River, 110 km2, 2000 m crossing
+gate_douglas_creek         = [-108.68099, 39.71696]   # Headwaters Douglas Creek, 107 km2, 2000 m crossing
+gate_lake_fork_2           = [-110.39696, 40.35915]   # Pigeon Water Creek-Lake Fork River, 102 km2, 2000 m crossing
+
+[share]
+start_date = "2025-01-26_18:00:00"
+end_date = "2025-01-28_18:00:00"
+interval_seconds = 3600
+nocolons = true
+
+[run]
+hours = 48
+
+# PORTS ARE NOT TARGET WAYPOINTS. The five Basin ports sit ON the d02 boundary by construction
+# (they are where the Green, Little Snake, Yampa and White corridors cross it), so as targets they
+# would always fail the inset test (domain_calc.py 2026-09-15: the Desolation port 0.3 km outside,
+# the others 1.7-4.2 km inside). Their gate lines live in brc-tools lookups.toml [gates.port_*] and
+# their tslist points in handoff/tslist. Kept here for the record, commented out:
+# port_green_river_out_desolation = [-110.10275, 39.16441]   # Lower Green: Tusher Wash-Green River, 78160 km2 (truncated at the analysis grid)
+# port_little_snake_in       = [-107.70066, 41.00858]   # Little Snake: Willow Creek-Little Snake River, 3499 km2 (truncated at the analysis grid)
+# port_yampa_in              = [-107.70095, 40.42065]   # Lower Yampa: Morgan Gulch-Yampa River, 1638 km2 (truncated at the analysis grid)
+# port_white_river_in        = [-107.70067, 39.94697]   # Upper White: Coal Creek-White River, 878 km2 (truncated at the analysis grid)
+# port_green_river_in_flaming_gorge = [-109.73505, 41.76551]   # Upper Green-Slate: Eightmile Wash-Green River, 782 km2 (truncated at the analysis grid)
