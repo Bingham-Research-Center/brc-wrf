@@ -41,8 +41,9 @@ def main():
     for f in (build / 'run').iterdir():
         if f.is_file() and not f.name.startswith('namelist') and f.name not in ('iofields.txt', 'tslist', 'wrf.exe', 'real.exe'):
             (run / f.name).symlink_to(f.resolve())
-    for name in ('wrfinput_d01', 'wrfinput_d02', 'wrfbdy_d01', 'wrf.exe'):
+    for name in ('wrfinput_d01', 'wrfinput_d02', 'wrfbdy_d01'):
         shutil.copy2(source / name, run / name)
+    shutil.copy2(build / 'main/wrf.exe', run / 'wrf.exe')
     for name in ('iofields.txt', 'tslist'):
         shutil.copy2(root / name, run / name)
     for name in ('conveyor_ctl.py', 'wrf_conveyor.slurm', 'preflight_check.py'):

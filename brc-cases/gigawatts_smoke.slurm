@@ -31,7 +31,19 @@ if [[ "$GW_KIND" == transport_chain ]]; then
   "$PY" -B "$CONVEYOR_DIR/preflight_check.py" seeded "$RUN"/wrfrst_d0?_2025-01-26_19* > "$CONVEYOR_DIR/seed_check.txt"
   "$PY" -B "$CONVEYOR_DIR/conveyor_ctl.py" --control "$CONVEYOR_DIR" seeded --sim-time '2025-01-26_19:00:00'
 fi
-bash "$CONVEYOR_DIR/wrf_conveyor.slurm"
+# Slurm sends B:USR1 to this outer shell; forward it to the controller shell so
+# the running model segment is recorded as failed before the allocation ends.
+forward_signal() {
+  kill -s "$1" "$CONVEYOR_PID" 2>/dev/null || true
+  wait "$CONVEYOR_PID" || true
+  exit 1
+}
+trap 'forward_signal USR1' USR1
+trap 'forward_signal TERM' TERM
+bash "$CONVEYOR_DIR/wrf_conveyor.slurm" &
+CONVEYOR_PID=$!
+wait "$CONVEYOR_PID"
+trap - USR1 TERM
 "$PY" -B "$GW_EXPERIMENT/analysis/iter7/check_smoke.py" --control "$CONVEYOR_DIR" --root "$GW_CONTROL" --kind "$GW_KIND"
 if [[ "$GW_KIND" == transport_chain ]]; then
   "$PY" -B "$CONVEYOR_DIR/preflight_check.py" chain --control "$CONVEYOR_DIR" > "$CONVEYOR_DIR/chain_check.txt"
