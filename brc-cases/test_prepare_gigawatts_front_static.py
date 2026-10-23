@@ -16,9 +16,11 @@ def packet():
     return (c/'namelist.base.input').read_text(),load_module(c/'conveyor_ctl.py')
 
 
-def test_delayed_clock_static_stream_and_matched_parents(packet):
+@pytest.mark.parametrize('advection', [1, 2])
+def test_delayed_clock_static_stream_and_matched_parents(packet, advection):
     base,ctl=packet
-    out=namelist(base,ctl,delayed=True)
+    base=ctl.set_key(base,'tracer_adv_opt',[advection]*2)
+    out=namelist(base,ctl,delayed=True,tracer_adv_opt=[advection]*2)
     assert value(out,'start_hour')==['19']*3
     assert value(out,'start_minute')==['0','0','15']
     assert value(out,'end_hour')==['20']*3
@@ -27,7 +29,7 @@ def test_delayed_clock_static_stream_and_matched_parents(packet):
     assert value(out,'ignore_iofields_warning')==['.false.']
     assert value(out,'restart')==['.true.']
     assert value(out,'epssm')==['0.3','0.3','0.9']
-    assert value(out,'tracer_adv_opt')==['2']*3
+    assert value(out,'tracer_adv_opt')==[str(advection)]*3
     for key in ['e_we','e_sn','e_vert','dx','dy','i_parent_start','j_parent_start',
                 'parent_grid_ratio','parent_time_step_ratio','tracer_opt',
                 'diff_6th_slopeopt','diff_6th_thresh','mp_physics','sf_surface_physics']:
@@ -35,9 +37,11 @@ def test_delayed_clock_static_stream_and_matched_parents(packet):
     assert float(value(out,'time_step')[0])/3/5==.6
 
 
-def test_real_packet_starts_all_three_domains_together(packet):
+@pytest.mark.parametrize('advection', [1, 2])
+def test_real_packet_starts_all_three_domains_together(packet, advection):
     base,ctl=packet
-    out=namelist(base,ctl)
+    out=namelist(base,ctl,tracer_adv_opt=[advection]*2)
+    assert value(out,'tracer_adv_opt')==[str(advection)]*3
     assert value(out,'start_hour')==['18']*3
     assert value(out,'start_minute')==['0']*3
     assert value(out,'end_day')==['26']*3

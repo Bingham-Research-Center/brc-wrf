@@ -3,6 +3,7 @@
 import argparse
 import importlib.util
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -33,6 +34,8 @@ def export_blobs(repo, revision, paths, target):
 
 def seal(a):
     assert os.environ.get('SLURM_JOB_ID'),'strict preparation belongs on Slurm'
+    assert math.isfinite(a.tracer_surcharge_max) and a.tracer_surcharge_max >= 0
+    tracer_adv=[a.tracer_adv_opt]*2
     c,old=a.control.resolve(),a.previous_control.resolve()
     assert not c.exists(),'a new control directory is required'
     c.mkdir(parents=True);(c/'logs').mkdir();(c/'build').mkdir();(c/'sources').mkdir()
@@ -79,11 +82,11 @@ def seal(a):
     (c/'initial_reuse.json').write_text(json.dumps(reuse,indent=2)+'\n')
     for file in ('conveyor_ctl.py','wrf_conveyor.slurm','preflight_check.py','seed_tracers_gigawatts.py','wrf_levels.py','iofields.txt'):
         copy(exp/'handoff'/file,c/file)
-    for file in ('prepare_gigawatts_smoke.py','check_namelist_registry.py'):
+    for file in ('prepare_gigawatts_smoke.py','check_namelist_registry.py','submit_p2_chain.py'):
         copy(tools/file,c/file)
     copy(exp/'analysis/iter7/check_transport.py',c/'check_transport.py')
     ctl=module('p2_controller',c/'conveyor_ctl.py')
-    base=ctl.set_key((old/'namelist.base.input').read_text(),'tracer_adv_opt',[2,2])
+    base=ctl.set_key((old/'namelist.base.input').read_text(),'tracer_adv_opt',tracer_adv)
     base=ctl.set_key(base,'bl_mynn_tkeadvect',[False,False])
     (c/'namelist.base.input').write_text(base)
     # The case manifest and rendered control agree on this distinct build.
@@ -102,7 +105,7 @@ def seal(a):
     static=c/('front_static_'+os.environ['SLURM_JOB_ID']);static.mkdir()
     front=prepare(raw,static/'wrfinput_d03',build/'Registry','2025-01-26_19:15:00',
                   c/'iofields.txt',parent=source/'wrfinput_d02')
-    (static/'namelist.delayed.input').write_text(namelist(base,ctl,delayed=True))
+    (static/'namelist.delayed.input').write_text(namelist(base,ctl,delayed=True,tracer_adv_opt=tracer_adv))
     (static/'preparation.json').write_text(json.dumps({'source_real':str(source),
         'previous_static_packet':oldfront,'scope':'reuse accepted static source; apply B1 and E1'},indent=2)+'\n')
     for target in (c/'namelist.base.input',static/'namelist.delayed.input'):
@@ -123,9 +126,10 @@ def seal(a):
         copy(tools/name,c/'delayed_model_tools'/name)
     (c/'delayed_model_tool.sha256').write_text(''.join(sha(p)+'  '+str(p)+'\n' for p in sorted((c/'delayed_model_tools').iterdir())))
     template=c/'reference_template';shutil.copytree(old/'flight1_readiness_20261007/reference_template',template)
-    meta={'capsule_version':9,'previous_control':str(old),'GW_UB_SHA':a.ub_sha,'GW_WRF_SHA':a.wrf_sha,
+    meta={'capsule_version':10,'previous_control':str(old),'GW_UB_SHA':a.ub_sha,'GW_WRF_SHA':a.wrf_sha,
         'GW_EXPERIMENT':str(exp),'GW_WRF_SOURCE':str(wrf),'build_source_commit':build_meta['source_commit'],
-        'compiled_scalars':12,'tracer_adv_opt':[2,2],'delayed_epssm':[.3,.3,.9],
+        'compiled_scalars':12,'tracer_adv_opt':tracer_adv,'tracer_surcharge_max':a.tracer_surcharge_max,
+        'delayed_epssm':[.3,.3,.9],
         'terrain_blend':{'spec_bdy_width':5,'blend_width':5},'prepared_by_job':os.environ['SLURM_JOB_ID'],
         'reference_launch_authorized':False}
     (c/'source_capsule.json').write_text(json.dumps(meta,indent=2)+'\n')
@@ -143,4 +147,7 @@ if __name__=='__main__':
     for name in ('previous-control','control','build-evidence','wrf-source','ub-source'):
         p.add_argument('--'+name,type=Path,required=True)
     for name in ('wrf-sha','ub-sha'):p.add_argument('--'+name,required=True)
+    p.add_argument('--tracer-adv-opt',type=int,choices=(1,2),default=2)
+    p.add_argument('--tracer-surcharge-max',type=float,default=.40,
+                   help='Explicitly authorized fractional integration surcharge limit')
     seal(p.parse_args())

@@ -2,6 +2,7 @@
 """Collect bounded P2 evidence and optionally prepare a STOPped reference; no sbatch."""
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -21,16 +22,22 @@ def collect(c, prepare_reference=True):
         path=Path(markers['transport_chain']['control'])/'transport.json'
         transport=json.loads(path.read_text())
     matched=costs.get('tracers',{})
+    limit=capsule.get('tracer_surcharge_max',costs.get('rules',{}).get('tracer_surcharge_max',.40))
+    assert math.isfinite(limit) and limit >= 0, 'invalid sealed cost limit'
+    surcharge=matched.get('integration_surcharge_fraction')
+    within_cost_rule=surcharge is not None and math.isfinite(surcharge) and surcharge <= limit
     checks={'baseline12':bool(markers['baseline12'].get('accepted_plumbing')),
         'control0':bool(markers['control0'].get('accepted_plumbing')),
-        'matched_notch392_cost':bool(matched.get('within_cost_rule') and matched.get('node')=='notch392'
+        'matched_notch392_cost':bool(within_cost_rule and matched.get('node')=='notch392'
                                    and matched.get('compiled_scalars')==12),
         'transport12':bool(markers['transport_chain'].get('accepted_plumbing') and transport.get('accepted')
                            and transport.get('scalar_count')==12),
-        'capsule9':capsule.get('capsule_version')==9}
+        'supported_capsule':capsule.get('capsule_version') in (9,10)}
     result={'job':os.environ['SLURM_JOB_ID'],'checks':checks,'reference_preflight_passed':all(checks.values()),
         'delayed_front':bool(markers['delayed_front'].get('accepted_plumbing')),
         'delayed_gates':'200 m follow-on nests only (D1)', 'matched_cost':costs,
+        'applied_cost_rule':{'tracer_surcharge_max':limit,'within_cost_rule':within_cost_rule,
+            'source':'source_capsule.json' if 'tracer_surcharge_max' in capsule else 'smoke_comparison.json legacy default'},
         'storage_free_bytes':shutil.disk_usage(c).free,
         'reference_submitted':False,'reference_requires':'measured evidence and recovery/storage review, then JRL explicit go',
         'missing_evidence':[name for name,ok in checks.items() if not ok]}

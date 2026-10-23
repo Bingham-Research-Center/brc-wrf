@@ -11,6 +11,7 @@ import shutil
 import numpy as np
 from netCDF4 import Dataset, chartostring
 from prepare_delayed_static import prepare, sha
+from prepare_gigawatts_smoke import tracer_advection
 
 
 def load_module(path):
@@ -32,7 +33,9 @@ EXTEND = set('frames_per_auxhist7 auxhist7_interval end_second end_minute '
     'diff_6th_thresh diff_6th_slopeopt tracer_pblmix tracer_adv_opt tracer_opt epssm'.split())
 
 
-def namelist(base, ctl, delayed=False):
+def namelist(base, ctl, delayed=False, tracer_adv_opt=(2, 2)):
+    tracer_adv = list(tracer_adv_opt)
+    assert tracer_adv in ([1, 1], [2, 2]), tracer_adv
     text = base
     for match in list(re.finditer(r'^\s*([a-zA-Z0-9_]+)\s*=([^!\n]+)', base, re.M)):
         key, raw = match.groups()
@@ -47,7 +50,7 @@ def namelist(base, ctl, delayed=False):
         'parent_id': [1,1,2], 'i_parent_start': [1,71,237],
         'j_parent_start': [1,81,216], 'parent_grid_ratio': [1,5,3],
         'parent_time_step_ratio': [1,3,5], 'time_step': 9, 'feedback': 0,
-        'restart': False, 'tracer_opt': [2]*3, 'tracer_adv_opt': [2]*3,
+        'restart': False, 'tracer_opt': [2]*3, 'tracer_adv_opt': tracer_adv + [tracer_adv[-1]],
         'bl_mynn_tkeadvect': [False]*3}
     if delayed:
         values.update(run_hours=1, run_minutes=15, restart=True,
@@ -123,8 +126,9 @@ def setup(control):
     shutil.copy2(build/'main/real.exe',run/'real/real.exe')
     shutil.copy2(control/'iofields.txt',run/'real/iofields.txt')
     base=(control/'namelist.base.input').read_text()
-    (run/'real/namelist.input').write_text(namelist(base,ctl))
-    (e/'namelist.delayed.input').write_text(namelist(base,ctl,delayed=True))
+    tracer_adv=tracer_advection(control)
+    (run/'real/namelist.input').write_text(namelist(base,ctl,tracer_adv_opt=tracer_adv))
+    (e/'namelist.delayed.input').write_text(namelist(base,ctl,delayed=True,tracer_adv_opt=tracer_adv))
     shutil.copy2(run/'wps/namelist.wps',e/'namelist.wps')
     shutil.copy2(run/'real/namelist.input',e/'namelist.static_real.input')
     (e/'preparation.json').write_text(json.dumps({'source_real':str(source),'source_wps':str(wps),

@@ -17,6 +17,15 @@ def sha(path):
     return h.hexdigest()
 
 
+def tracer_advection(control):
+    """Read the sealed per-domain choice; retain the pre-v10 default."""
+    path = control / 'source_capsule.json'
+    capsule = json.loads(path.read_text()) if path.is_file() else {}
+    values = capsule.get('tracer_adv_opt', [2, 2])
+    assert values in ([1, 1], [2, 2]), f'unexpected sealed tracer_adv_opt {values}'
+    return values
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--control', type=Path, required=True)
@@ -25,6 +34,7 @@ def main():
     a = p.parse_args()
     assert os.environ.get('SLURM_JOB_ID'), 'file copies and hashes belong on Slurm'
     root = a.control
+    tracer_adv = tracer_advection(root)
     accepted = json.loads((root / 'real_complete.json').read_text())
     assert accepted['accepted']
     source = Path(accepted['run_dir'])
@@ -58,7 +68,7 @@ def main():
     spec.loader.exec_module(cc)
     base = (root / 'namelist.base.input').read_text()
     base = cc.set_key(base, 'tracer_opt', [0, 0] if a.kind == 'control0' else [2, 2])
-    base = cc.set_key(base, 'tracer_adv_opt', [2, 2])
+    base = cc.set_key(base, 'tracer_adv_opt', tracer_adv)
     base = cc.set_key(base, 'bl_mynn_tkeadvect', [False, a.kind == 'tke24'])
     state = {'schema': 2, 'case': a.kind, 'wrf_run': str(run), 'status': 'idle', 'reason': '',
              'rate': {'smoke_wall_h_per_sim_h': 2.69, 'source': 'unmeasured prior sizing estimate'},
@@ -117,7 +127,7 @@ keep = ["2025-01-26_19:00:00"]
     cc.Config(target / 'blocks.toml')
     (target / 'state.json').write_text(json.dumps(state, indent=2) + '\n')
     (target / 'preparation.json').write_text(json.dumps({'kind': a.kind, 'source_real': accepted,
-        'compiled_scalars': count, 'tracer_adv_opt': [2, 2], 'ranks': int(os.environ['SLURM_NTASKS']),
+        'compiled_scalars': count, 'tracer_adv_opt': tracer_adv, 'ranks': int(os.environ['SLURM_NTASKS']),
         'node': os.environ['SLURM_JOB_NODELIST'],
         'wrf_sha256': sha(run / 'wrf.exe'), 'initial_sha256': {n: sha(run / n) for n in
         ('wrfinput_d01', 'wrfinput_d02', 'wrfbdy_d01')}, 'run_dir': str(run),
