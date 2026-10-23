@@ -11,9 +11,31 @@ AI cold start.
 **22 October 2026: drainage canyons in gigawatts, P2.** The accepted work
 order is ub-wx `bcf2d1f`, `experiments/drainage-canyons-gigawatts/handoff/README.md`.
 The three unfinished Flight 1 files were preserved in `18e04753`. The distinct
-12-scalar source is `b76fe00b`; compile job `16434828` runs on notch137 (16 CPUs).
+12-scalar source is `b76fe00b`; compile job `16434828` completed `0:0` on
+notch137 (16 CPUs, 36m56s). Capsule preparation `16436422` completed `0:0`.
 The October 6 24-scalar build and its tag remain preserved. Current build truth
 and evidence paths belong to `BRC_WRF_RESEARCH_BUILDS.md`.
+
+Current control: `$WRF_ARCHIVE/gigawatts_600m/control/p2_20261023`.
+Capsule v9 pins execution code `3e34a75a` and ub-wx `15cfec9f`; the build
+remains the separate `b76fe00b` release. `submission.json` records every
+command and dependency. Queued jobs, verified 22 October 21:36 MDT:
+
+| Work | Job | Dependency |
+| --- | --- | --- |
+| baseline12 | `16436457` | BeginTime 23 Oct 04:45 MDT; preparation passed |
+| control0 | `16436458` | afterok baseline12 |
+| transport_chain | `16436459` | afterok control0 |
+| delayed_front | `16436460` | afterok transport_chain |
+| reference readiness collector | `16436461` | afterany first three tests |
+| delayed evidence collector | `16436462` | afterany delayed_front and first collector |
+
+Model jobs each request all 56 ranks and 900 GiB on exclusive notch392.
+Collectors use one CPU on notch137. Results will be in `p2_readiness.json`,
+`smoke_comparison.json`, each smoke's `transport.json`, and `logs/`.
+The new reference, if those checks pass, is prepared as
+`conveyor_reference_p2_p2_20261023` beside this control and retains `STOP`.
+Pending jobs are not accepted runs. Do not submit this chain again.
 
 P2 runs baseline12, control0 and transport_chain with monotonic tracer advection
 on notch392 from 23 October 04:45 MDT, after build/control acceptance. The matched

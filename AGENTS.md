@@ -121,8 +121,8 @@ a proven NetCDF-capable render environment with `PYTHONPATH` pointed at
 
 ## Active Experiment Snapshot
 
-- Gigawatts: 24-tracer release retained; approved P2 twelve-scalar build and
-  bounded suite in progress (22 October). Model pre-flight and science run are
+- Gigawatts: 24-tracer release retained; P2 twelve-scalar build released and
+  bounded suite queued (22 October). Model pre-flight and science run are
   separate gates. Build provenance: `doc/BRC_WRF_RESEARCH_BUILDS.md`; current
   cross-repo preparation: `../ub-wx/experiments/drainage-canyons-gigawatts/README.md`.
 - Pelican: completed controls/treatments await science review; no new run
