@@ -2,6 +2,20 @@
 
 ## Canonical source and experiment identity
 
+**22 October 2026 work order:** JRL selected P2, a separate twelve-scalar
+`tracer_opt=2` package (`tr17_1..12`, six merged concentration/theta pairs).
+The request is `ub-wx` commit `bcf2d1f`, experiment `handoff/README.md`,
+"Decisions, 22 Oct 2026". This source now declares twelve scalars; the
+October 6 tag, build, and evidence below retain their 24-scalar identity.
+Use `check_tracer_registry.py --count 24` when auditing that older build.
+The current user authorizes the new compile and bounded matched suite.
+Its distinct build must pass source/generated metadata, compiler-log,
+executable/library and hash checks before the suite consumes it. A manifest
+written by the build records `terminal_state_pending` until `sacct` confirms
+the job has completed. Compilation may use another owned Notchpeak node;
+the matched 56-rank cost pair remains on notch392 from 23 October 04:45 MDT.
+The 48-hour run still requires the measured review and final go.
+
 Maintain `john/wrf` as the research source line on the frozen WRF 4.8.0
 baseline. Experiment case files coexist on that line. Use short-lived
 `john/*` branches for changes that need review, and immutable tags plus

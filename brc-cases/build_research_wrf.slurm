@@ -2,7 +2,7 @@
 # Approved compile proof only. Supply SOURCE, full SHA, new BUILD and existing EVIDENCE.
 # sbatch --output=<evidence>/slurm_%j.out --error=<evidence>/slurm_%j.err \
 #   brc-cases/build_research_wrf.slurm SOURCE SHA BUILD EVIDENCE
-#SBATCH --job-name=wrf_tracers24_build
+#SBATCH --job-name=wrf_tracers12_build
 #SBATCH --account=lawson-np
 #SBATCH --partition=lawson-np
 #SBATCH --nodelist=notch392
@@ -92,4 +92,6 @@ done
 sha256sum main/{wrf,real,ndown,tc}.exe configure.wrf Registry/Registry.EM > "$EVIDENCE/build_sha256.txt"
 find -L run -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > "$EVIDENCE/runtime_sha256.txt"
 git diff --binary HEAD > "$EVIDENCE/post_build_source.diff"
+[[ ! -s "$EVIDENCE/post_build_source.diff" ]]
+python3 -B brc-cases/write_research_build_manifest.py --build "$WRF_BUILD" --evidence "$EVIDENCE"
 printf 'result=PASS_COMPILE_ONLY\n' >> "$SUMMARY"
