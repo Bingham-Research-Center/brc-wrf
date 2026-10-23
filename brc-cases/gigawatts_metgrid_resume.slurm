@@ -10,6 +10,7 @@
 #SBATCH --job-name=gw_met_resume
 set -euo pipefail
 : "${GW_CONTROL:?}"
+: "${WRF_RUNS:?scratch run root required}"
 : "${GW_PREVIOUS_WPS_JOB:?}"
 [[ "$GW_PREVIOUS_WPS_JOB" =~ ^[0-9]+$ ]]
 [[ "$SLURM_NTASKS" == 8 ]]
@@ -24,7 +25,7 @@ sha256sum -c "$GW_CONTROL/wps/wps_sha256.txt"
 sha256sum -c "$GW_CONTROL/metgrid_resume_tool.sha256"
 PY="$HOME/software/pkg/miniforge3/envs/brc-tools-2026/bin/python"
 export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1
-export RUN="/scratch/general/vast/$USER/wrf_runs/gigawatts_600m/wps_metgrid_resume_$SLURM_JOB_ID/wps_run"
+export RUN="$WRF_RUNS/gigawatts_600m/wps_metgrid_resume_$SLURM_JOB_ID/wps_run"
 export EVIDENCE="$GW_CONTROL/wps_resume_$SLURM_JOB_ID"
 mkdir -p "$(dirname "$RUN")"
 mkdir "$RUN" "$EVIDENCE"

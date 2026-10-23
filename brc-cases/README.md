@@ -3,79 +3,11 @@
 This directory holds BRC-local case manifests and the cheap helper used to
 review them before any WPS, WRF, or Slurm work starts.
 
-## Gigawatts bounded preparation
+## Gigawatts
 
-`gigawatts_600m.case.yaml` and `prepare_gigawatts.py` render the October two-domain
-packet. Separate `gigawatts_wps.slurm`, `gigawatts_real.slurm` and
-`gigawatts_smoke.slurm` stop at their respective evidence gates. Current jobs,
-source pins and approval scope are recorded in the ub-wx experiment README.
+Run configuration, decisions, status and results live only in the [ub-wx gigawatts handoff](../../ub-wx/experiments/drainage-canyons-gigawatts/handoff/README.md) (ADR-10).
 
-The 22 October P2 order adds `baseline12` and monotonic tracer advection.
-`prepare_gigawatts_p2.py` seals a new control from exact source commits and
-the separate 12-scalar build, verifies its hashes, reuses accepted initial
-fields, and builds the revised static packet. It does not overwrite earlier
-capsules. `gigawatts_p2_stage.slurm` dispatches explicitly submitted bounded
-jobs; `collect_gigawatts_p2.py` records cost/transport acceptance and, if
-they pass, prepares a new reference with STOP still present. It cannot
-submit WRF. Match baseline12 and control0 on notch392, 56 ranks, one build,
-initial files, monotonic advection and output cadence. Their cost rule is 40%.
-The delayed test gates only 200 m follow-on nests (D1), with d03 epssm 0.9.
-
-`gigawatts_metgrid_resume.slurm` is a bounded continuation for an initial WPS
-job that reaches TIMEOUT after entering d02. It preserves completed files and
-intermediates, redoes the last-started hour plus a completed overlap hour on
-eight MPI ranks, compares every overlap field, and verifies all 98 output
-clocks, required fields and levels. It refuses other failure states. The
-initial render used a singleton metgrid launch; Slurm refused a runtime-limit
-increase, so this packet avoids redoing the completed ungrib/domain-one work.
-
-`prepare_delayed_static.py` prepares the later d03 static-only input from an
-actual real.exe file. It audits the released build's complete Registry include
-graph and uses otherwise empty input stream 6 with an explicit static allowlist.
-It preserves the original and records hashes and field selection. With `--parent`,
-it also uses `nest_terrain.py` to reproduce WRF SINT parent interpolation and
-WRF blend weights: five exact-parent rows followed by five transition rows,
-as clarified by JRL on 22 October. It records before/after HGT hashes, edge
-differences and unchanged interior. Times/START_DATE are retimed. It excludes atmospheric,
-tracer, snow/ice and transient surface/soil fields. Required namelist settings
-are emitted in its provenance JSON; the three-domain packet and actual model
-inheritance still require review. Job 16102225 passed four synthetic tests and
-the released Registry audit. Details and timing are in
-`../ub-wx/experiments/drainage-canyons-gigawatts/handoff/delayed_nest_review.md`.
-
-`gigawatts_front_static.slurm` and `prepare_gigawatts_front_static.py` derive
-that d03 input only after the two-domain real/initial-field checks pass. They
-compare parent geometry with the accepted front geogrid, process two d03
-forcing frames with eight MPI ranks, run real.exe, and prepare the restricted
-static file plus the 19:00/19:15/20:15 delayed namelist. Three namelist regression
-tests passed in job 16103167. No wrf.exe integration occurs; actual static-file
-and delayed-activation evidence remain independent acceptance stages.
-
-`gigawatts_delayed.slurm` makes one bounded 75-minute model launch on 56 ranks
-(maximum eight wall-hours), with the d03 activation strictly inside it. It
-requires accepted real/initial fields, accepted seeded transport, and the
-matching static-packet review marker. The generic conveyor splits at domain
-activation boundaries and must not be substituted for this test. The helper
-copies/hashes parent restarts, checks all-rank logs, exact parent/d03 clocks,
-static interior terrain and inherited tracer bounds, and records surface-state
-differences for review. Six inherited-tracer regressions passed in 16103469.
-There is no production continuation or restart pruning; actual model proof is
-still required.
-
-`gigawatts_init_probe.slurm` uses the eight free ranks for initialization and
-three coarse steps (27 simulated seconds), after real/initial-field acceptance.
-It suppresses history/auxiliary output, preserves the accepted inputs, verifies
-all-rank logs and the exact end time, and has a 30-minute wall limit. This can
-expose initialization defects while the full node is occupied. It provides no
-performance, transport or nocturnal-stability acceptance; the matched tests
-retain their 56-rank layout.
-
-`check_namelist_registry.py` verifies key placement against the released
-build's generated namelist statements and its manual quilting declaration.
-Job 16104097 exposed `tracer_pblmix` in the wrong group; the renderer now puts
-it under physics, with the same value 1. Three regression tests passed in
-16104241. The real wrapper runs this check before applying lake edits. It
-checks groups and duplicate/unknown keys, not Fortran value syntax or science.
+## Case workflow
 
 The checkpoint is intentionally small:
 

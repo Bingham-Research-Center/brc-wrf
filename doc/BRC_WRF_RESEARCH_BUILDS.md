@@ -1,20 +1,8 @@
 # BRC research builds
 
-## Canonical source and experiment identity
+## Canonical source and build provenance
 
-**22 October 2026 work order:** JRL selected P2, a separate twelve-scalar
-`tracer_opt=2` package (`tr17_1..12`, six merged concentration/theta pairs).
-The request is `ub-wx` commit `bcf2d1f`, experiment `handoff/README.md`,
-"Decisions, 22 Oct 2026". This source now declares twelve scalars; the
-October 6 tag, build, and evidence below retain their 24-scalar identity.
-Use `check_tracer_registry.py --count 24` when auditing that older build.
-The current user authorizes the new compile and bounded matched suite.
-Its distinct build must pass source/generated metadata, compiler-log,
-executable/library and hash checks before the suite consumes it. A manifest
-written by the build records `terminal_state_pending` until `sacct` confirms
-the job has completed. Compilation may use another owned Notchpeak node;
-the matched 56-rank cost pair remains on notch392 from 23 October 04:45 MDT.
-The 48-hour run still requires the measured review and final go.
+Gigawatts configuration, decisions, status and results live only in the [ub-wx gigawatts handoff](../../ub-wx/experiments/drainage-canyons-gigawatts/handoff/README.md) (ADR-10).
 
 ### P2 compile release, 23 October UTC
 
@@ -31,7 +19,7 @@ all four executables exist, and `wrf.exe`/`real.exe` libraries resolve.
 The manifest pins executables, configuration, Registry and 90 runtime entries.
 `wrf.exe` SHA-256 is
 `dc7f1c28c49ad04f3777d0aecd1e1d0f7701e34f87b88b32fc2bd82a9a25066a`.
-This releases the compile for the bounded P2 suite; model acceptance is pending.
+This record establishes compile provenance only; model acceptance belongs to the experiment entry.
 
 Maintain `john/wrf` as the research source line on the frozen WRF 4.8.0
 baseline. Experiment case files coexist on that line. Use short-lived
@@ -49,6 +37,8 @@ submodule commits in a unique John-owned directory under
 2021.4.0 / MPI 2021.1.1 / HDF5 1.14.3 / netCDF C 4.9.2 and Fortran 4.6.1
 stack, legacy configure option 15, basic nesting 1, and eight build CPUs on
 notch392. It requires explicit build approval and runs only through Slurm.
+Supply `SOURCE SHA BUILD EVIDENCE PROJECT` as its five positional arguments;
+`PROJECT` is passed to `write_research_build_manifest.py --project`.
 
 Retain source/submodule identities, configure transcript and file, compiler
 and module versions, compile log, generated tracer metadata, linked-library
@@ -88,19 +78,14 @@ remote branches were removed, with explicit expected-tip leases for remote
 deletion. Both local and origin now have only `john/wrf` and frozen `master`
 (`06d4240a`). No experiment source history was lost.
 
-## Drainage canyons in gigawatts: accepted build scope
+## Historical 24-scalar build implementation
 
-Request source: `ub-wx` commit `9a6c78ac1dafc74611809b2e3a0fdb628cdddc7e`,
-`experiments/drainage-canyons-gigawatts/handoff/README.md`, following JRL's
-3 and 5 October decisions. On 6 October JRL approved the 24-tracer rebuild.
-This approval covers compilation and its checks. Model pre-flight submissions
-and the 48-hour experiment remain separate decisions.
-
-The patch extends `Registry/Registry.EM` from eight to 24 `tr17_*` scalars in
-`tracer_opt=2`, preserving their existing I/O, restart, nesting and boundary
-flags. It supplies eleven concentration / concentration-times-initial-theta
-pairs and one held pair. Region definitions and seeding remain experiment
-configuration. The old eight-tracer executables are retained.
+The October 6 patch extends `Registry/Registry.EM` from eight to 24 `tr17_*`
+scalars in `tracer_opt=2`, preserving the I/O, restart, nesting and boundary
+flags. The older eight-scalar executables and the released 24-scalar build
+remain distinct from the later twelve-scalar release. Use
+`check_tracer_registry.py --count 24` for the 24-scalar source or build,
+adding `--generated` when auditing compiled allocation metadata.
 
 The first clean parallel attempt, job `16071250` at source `062aa22a`, exposed
 a missing dependency: `physics_mmm/bl_shinhong.F90` uses `ccpp_kind_types`,
@@ -111,52 +96,6 @@ adds the implementation prerequisite and rejects ignored compiler errors in
 the build wrapper. This is a local build-order fix, with no physics source
 change or upstream port. Job `16071302` is the fresh retry, with no object
 reuse; it passed the compile acceptance checks below.
-
-### Review findings that must survive handoff
-
-- Iteration 6 is a design/theory report with geogrid and preparatory evidence;
-  its numerical predictions and 5.4-day runtime estimate are not WRF results.
-  The measured pre-flight half is still pending.
-- At the compile review, brc-tools PRs 66/68 were still open. The later
-  preparation audit confirms both merged with review fixes 69; theory was
-  regenerated on `11eccf1`. Live brc-tools main is `c223bcc` (explicit mean
-  reference support), with the published nocolons reader fix `49817aa` in PR 72 (21 tests passed). Keep
-  theory and execution/diagnostic pins distinct. Current preparation and
-  report policy: `../ub-wx/experiments/drainage-canyons-gigawatts/README.md`.
-- The handoff says its patch `--check` already passes. On the unmodified
-  `5bbcdb70` tree it exits 1 with eight tracers. Its checker also only counts
-  declarations, without validating exact package membership. The maintained
-  `check_tracer_registry.py` checks both and, after compile, generated metadata.
-- `tracer_opt` selects a Registry package, not a scalar count. After this patch
-  `tracer_opt=2` advances 24 scalars. Setting twelve to zero with `--fallback6`
-  does not produce a twelve-scalar cost benchmark. An eight-scalar comparison
-  or twelve-scalar fallback needs a separately pinned build or a reviewed
-  package selector; the latter is not part of this build.
-- A concentration-weighted initial-theta tag is a useful source-history
-  diagnostic. Its ratio minus local theta is not automatically an exact
-  parcel cooling or closed heat budget after mixing with other or untagged
-  air. Treat closure, tracer transport/mixing, boundary dilution, and the
-  low-concentration ratio threshold as scientific validation requirements.
-- `real.exe` retains WRF's stock central blob in tracers 1--4. Sunset seeding
-  must overwrite all 24 fields on both domains, including the held pair;
-  the imported seeder intends this but has not been proven on a restart.
-  Pair-temperature fields inherit generic "Dimensionless" Registry metadata;
-  the experiment's mapping must declare that even-numbered fields have units K.
-- JRL accepted the H2 flux trigger during closure: Lodore below 10% of
-  matched truth, with pool depth supporting evidence; carved first if met.
-  H7 retains 1 K with continuous effect/supply sensitivity; H8/H9 are exploratory.
-- Native MODIS alignment audit 16101184 supports the unshifted grid (99.97%
-  category agreement). Shoreline differences and uncertain non-Flaming-Gorge
-  ice remain scientific sensitivities. Terrain predictors do not prove night
-  stability, and spawning a nest from a restart remains untested here.
-- The September domain draft was preserved under the durable closure
-  control before adopting the October `brc-cases/specs/gigawatts_600m.domain.toml`.
-
-The reference design is one HRRR 18Z 26 January 2025 forecast through +48 h;
-3 km / 600 m, enlarged d01 to the divides, one-way nesting, 100 levels, 9/3 s;
-MYNN2, Thompson and Noah; GFS soil only, HRRR snow/skin temperature; observed
-26 January lake ice with open cells at 274.15 K; plan-D output and 128 sites.
-The carved-terrain run, corridor nest and frozen-lake twin are follow-ups.
 
 ## Verified compile release: 6 October 2026
 
@@ -182,39 +121,6 @@ checks pass for the exact 24-member package. The compiler-error scan is empty,
 and `ldd` resolves all libraries for WRF and real. The generated commit
 declaration records the full compiled source SHA.
 
-This is a **compile release**, ready for separately approved model pre-flight
-tests. No WPS, real, WRF integration, restart seeding or nest test was run in
-this build session. The next case/control packet must adopt this explicit
-build root and manifest; historical manifests and the June binaries retain
-their existing paths. The stale untracked September gigawatts spec was left
-untouched.
-
-## Gigawatts control acceptance: 6 October closure
-
-JRL requested autonomous closure and bounded pre-flight preparation. The new
-control is `$WRF_ARCHIVE/gigawatts_600m/control/closure_20261006`; case manifest
-`brc-cases/gigawatts_600m.case.yaml` pins this compiled build explicitly.
-Audit 16101154 rehashed all six build entries and 90 runtime entries successfully,
-rechecked generated tracer metadata, and copied the release manifest into control.
-WPS is separately pinned at source `335c76a111f84503e8b963abaf273ea8053645bb`
-with executable/configuration hashes. The September domain draft and inherited
-documentation edits were saved before adopting the October domain.
-
-`prepare_gigawatts.py` renders geometry through domain_calc and patches the
-accepted Green River namelist with declared October settings. Its generated
-GFS Vtable excludes SKINTEMP, SNOW and SNOWH; eight soil fields and LANDSEA remain.
-Model tests and initial-field checks retain their distinct evidence gates. The
-48-hour science run remains unapproved pending measured costs and stability.
-
-Forcing job 16101170 passed the 99-file manifest and 49-hour coverage checks;
-WPS job 16101416 consumes the pinned source and rechecks product/time coverage
-and every hash. `gigawatts_real.slurm` applies the lake state only to local
-copies and refuses failed metgrid or initial-field checks. Eight ranks fit
-initialization into the available node slot; the smoke comparisons remain at
-56 ranks on notch392. `gigawatts_smoke.slurm` prepares one bounded test at a
-time, with a six-hour backstop and no automatic resubmission. It checks actual
-output clocks, all-rank logs, and records integration/writing costs. The seeded
-variant runs two 15-minute segments and checks transported pair ratios, held
-tags, partition sum and dilution separately from initialization. Regression
-job 16101447 passed 28 controller, clock and transport tests. These synthetic
-checks are not substitutes for the pending model evidence.
+This is compile evidence only. Model acceptance belongs to the experiment
+entry. Each new rendered control must adopt an explicit build root and
+manifest; historical manifests and binaries retain their recorded paths.

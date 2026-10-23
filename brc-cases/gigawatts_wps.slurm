@@ -10,6 +10,7 @@
 #SBATCH --job-name=gw_wps
 set -euo pipefail
 : "${GW_CONTROL:?durable control directory required}"
+: "${WRF_RUNS:?scratch run root required}"
 test -s "$GW_CONTROL/staging_complete.txt"
 test -s "$GW_CONTROL/audit_complete.txt"
 export PYTHONDONTWRITEBYTECODE=1
@@ -40,7 +41,7 @@ bash "$GW_CONTROL/wps_packet/wps_field_proof.slurm"
 "$PY" -B - <<'PY'
 import json,os,pathlib,sys
 control=pathlib.Path(os.environ['GW_CONTROL'])
-root=pathlib.Path('/scratch/general/vast')/os.environ['USER']/'wrf_runs/gigawatts_600m'
+root=pathlib.Path(os.environ['WRF_RUNS'])/'gigawatts_600m'
 dirs=list(root.glob('wps_field_proof_'+os.environ['SLURM_JOB_ID']+'_*/wps_run'))
 assert len(dirs)==1,dirs
 sys.path.insert(0,str(control))

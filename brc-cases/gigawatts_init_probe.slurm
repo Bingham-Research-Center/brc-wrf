@@ -10,13 +10,14 @@
 #SBATCH --job-name=gw_init_probe
 set -euo pipefail
 : "${GW_CONTROL:?}"
+: "${WRF_RUNS:?scratch run root required}"
 [[ "$SLURM_NTASKS" == 8 ]]
 sha256sum -c "$GW_CONTROL/init_probe_tool.sha256"
 sha256sum -c "$GW_CONTROL/runtime_source_sha256.txt"
 PY="$HOME/software/pkg/miniforge3/envs/brc-tools-2026/bin/python"
 export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1
 export EVIDENCE="$GW_CONTROL/init_probe_$SLURM_JOB_ID"
-export RUN="/scratch/general/vast/$USER/wrf_runs/gigawatts_600m/init_probe_$SLURM_JOB_ID"
+export RUN="$WRF_RUNS/gigawatts_600m/init_probe_$SLURM_JOB_ID"
 mkdir "$RUN" "$EVIDENCE"
 BUILD=$("$PY" -B -c 'import json,sys;print(json.load(open(sys.argv[1]))["build_directory"])' "$GW_CONTROL/build/build_manifest.json")
 export BUILD

@@ -8,7 +8,7 @@ from pathlib import Path
 import subprocess
 
 
-def write(build, evidence):
+def write(build, evidence, project):
     def git(*args):
         return subprocess.check_output(['git', '-C', str(build), *args], text=True).strip()
 
@@ -21,7 +21,7 @@ def write(build, evidence):
               (line.split(maxsplit=1) for line in (evidence / 'build_sha256.txt').read_text().splitlines())}
     manifest = {
         'format_version': 1,
-        'project': 'drainage-canyons-gigawatts',
+        'project': project,
         'validation_scope': 'compile_only; model pre-flight and scientific validation pending',
         'repository': 'https://github.com/Bingham-Research-Center/brc-wrf.git',
         'canonical_branch': 'john/wrf',
@@ -54,5 +54,6 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--build', type=Path, required=True)
     p.add_argument('--evidence', type=Path, required=True)
+    p.add_argument('--project', required=True, help='Project identifier recorded in the build provenance')
     a = p.parse_args()
-    write(a.build, a.evidence)
+    write(a.build, a.evidence, a.project)

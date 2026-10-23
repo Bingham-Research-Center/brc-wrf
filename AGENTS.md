@@ -121,10 +121,9 @@ a proven NetCDF-capable render environment with `PYTHONPATH` pointed at
 
 ## Active Experiment Snapshot
 
-- Gigawatts: 24-tracer release retained; P2 twelve-scalar build released and
-  bounded suite queued (22 October). Model pre-flight and science run are
-  separate gates. Build provenance: `doc/BRC_WRF_RESEARCH_BUILDS.md`; current
-  cross-repo preparation: `../ub-wx/experiments/drainage-canyons-gigawatts/README.md`.
+- Gigawatts configuration, decisions, status and results: [ub-wx handoff](../ub-wx/experiments/drainage-canyons-gigawatts/handoff/README.md).
+  Keep only build provenance in `doc/BRC_WRF_RESEARCH_BUILDS.md`; do not
+  duplicate experiment run state in brc-wrf docs or status-only commits (ADR-10).
 - Pelican: completed controls/treatments await science review; no new run
   authorized. Other cases and source verdicts: `doc/BRC_WRF_EXPERIMENT_TODO.md`.
 - RAP is WPS-only; ERA5 is blocked; FNL/GEFS require explicit revival.

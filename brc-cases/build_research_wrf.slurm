@@ -1,7 +1,7 @@
 #!/bin/bash
-# Approved compile proof only. Supply SOURCE, full SHA, new BUILD and existing EVIDENCE.
+# Approved compile proof only. Supply SOURCE, full SHA, new BUILD, existing EVIDENCE and PROJECT.
 # sbatch --output=<evidence>/slurm_%j.out --error=<evidence>/slurm_%j.err \
-#   brc-cases/build_research_wrf.slurm SOURCE SHA BUILD EVIDENCE
+#   brc-cases/build_research_wrf.slurm SOURCE SHA BUILD EVIDENCE PROJECT
 #SBATCH --job-name=wrf_tracers12_build
 #SBATCH --account=lawson-np
 #SBATCH --partition=lawson-np
@@ -13,11 +13,13 @@
 #SBATCH --time=04:00:00
 
 set -euo pipefail
-[[ $# == 4 && -n ${SLURM_JOB_ID:-} ]] || { echo 'Expected four arguments and a Slurm allocation'; exit 2; }
+[[ $# == 5 && -n ${SLURM_JOB_ID:-} ]] || { echo 'Expected SOURCE SHA BUILD EVIDENCE PROJECT and a Slurm allocation'; exit 2; }
 WRF_SOURCE=$(realpath "$1")
 WRF_SHA=$2
 WRF_BUILD=$3
 EVIDENCE=$(realpath "$4")
+BUILD_PROJECT=$5
+[[ -n "$BUILD_PROJECT" ]]
 [[ $WRF_SHA =~ ^[0-9a-f]{40}$ && $WRF_BUILD == /* && ! -e $WRF_BUILD ]]
 [[ $(git -C "$WRF_SOURCE" rev-parse "$WRF_SHA^{commit}") == "$WRF_SHA" ]]
 SUMMARY="$EVIDENCE/job_summary.txt"
@@ -93,5 +95,5 @@ sha256sum main/{wrf,real,ndown,tc}.exe configure.wrf Registry/Registry.EM > "$EV
 find -L run -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > "$EVIDENCE/runtime_sha256.txt"
 git diff --binary HEAD > "$EVIDENCE/post_build_source.diff"
 [[ ! -s "$EVIDENCE/post_build_source.diff" ]]
-python3 -B brc-cases/write_research_build_manifest.py --build "$WRF_BUILD" --evidence "$EVIDENCE"
+python3 -B brc-cases/write_research_build_manifest.py --build "$WRF_BUILD" --evidence "$EVIDENCE" --project "$BUILD_PROJECT"
 printf 'result=PASS_COMPILE_ONLY\n' >> "$SUMMARY"

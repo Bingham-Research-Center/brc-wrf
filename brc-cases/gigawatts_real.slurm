@@ -14,12 +14,13 @@ set -euo pipefail
 : "${GW_CONTROL:?durable control directory required}"
 : "${GW_WPS_DIR:?accepted WPS output directory required}"
 : "${GW_EXPERIMENT:?experiment source directory required}"
+: "${WRF_RUNS:?scratch run root required}"
 test -s "$GW_CONTROL/audit_complete.txt"
 test -s "$GW_CONTROL/staging_complete.txt"
 PY="$HOME/software/pkg/miniforge3/envs/brc-tools-2026/bin/python"
 export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1
 export PYTHONPATH="$GW_CONTROL/sources/brc-tools-49817aa143c154bea406d97f7cfafb4f7b973af5:$GW_EXPERIMENT/analysis/iter5"
-RUN="/scratch/general/vast/$USER/wrf_runs/gigawatts_600m/real_$SLURM_JOB_ID"
+RUN="$WRF_RUNS/gigawatts_600m/real_$SLURM_JOB_ID"
 mkdir "$RUN"
 export RUN
 BUILD=$("$PY" -B -c 'import json,sys;print(json.load(open(sys.argv[1]))["build_directory"])' "$GW_CONTROL/build/build_manifest.json")

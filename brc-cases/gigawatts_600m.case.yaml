@@ -3,7 +3,7 @@ schema_version: 1
 # Compile release is reused; this manifest is preparation, not science-run approval.
 case:
   name: gigawatts_600m
-  label: "January drainage reference: one HRRR cycle, 3 km / 600 m, 24 tracers"
+  label: "January drainage reference: one HRRR cycle, 3 km / 600 m, 12 tracers"
   start: "2025-01-26_18:00:00"
   end: "2025-01-28_18:00:00"
   domains: 2
@@ -19,13 +19,13 @@ forcing:
   contract_path: "/scratch/general/vast/${USER}/wrf_inputs/gigawatts_600m/contract_gigawatts_600m.json"
 paths:
   wrf_src: "${BRC_WRF_ROOT}"
-  wrf_build: "${WRF_ARCHIVE}/../wrf_build/WRF-4.8.0-tracers24-5a68435cbf63-20261006T071850Z"
+  wrf_build: "${WRF_ARCHIVE}/../wrf_build/WRF-4.8.0-tracers12-b76fe00b4b0b-20261023T025123Z"
   wps_root: "${WRF_ARCHIVE}/../wrf_build/WPS"
   input_root: "/scratch/general/vast/${USER}/wrf_inputs/gigawatts_600m"
-  grib_data: "/scratch/general/vast/${USER}/wrf_runs/gigawatts_600m/grib_data"
-  run_root: "/scratch/general/vast/${USER}/wrf_runs/gigawatts_600m"
-  wps_run: "/scratch/general/vast/${USER}/wrf_runs/gigawatts_600m/wps_run"
-  wrf_run: "/scratch/general/vast/${USER}/wrf_runs/gigawatts_600m/wrf_run"
+  grib_data: "${WRF_RUNS}/gigawatts_600m/grib_data"
+  run_root: "${WRF_RUNS}/gigawatts_600m"
+  wps_run: "${WRF_RUNS}/gigawatts_600m/wps_run"
+  wrf_run: "${WRF_RUNS}/gigawatts_600m/wrf_run"
   geog_data_path: "${WRF_ARCHIVE}/geog3s"
   archive_root: "${WRF_ARCHIVE}/gigawatts_600m"
 wps:
@@ -37,8 +37,8 @@ wps:
   namelist_template: "${WRF_ARCHIVE}/gigawatts_600m/control/closure_20261006/namelist.wps"
   geogrid_source: "${WRF_ARCHIVE}/gigawatts_iter5/gw5_fpA_600/domain_review/geogrid_20261003T173913Z_16042657"
 namelists:
-  namelist_wps: "/scratch/general/vast/${USER}/wrf_runs/gigawatts_600m/wps_run/namelist.wps"
-  namelist_input: "/scratch/general/vast/${USER}/wrf_runs/gigawatts_600m/wrf_run/namelist.input"
+  namelist_wps: "${WRF_RUNS}/gigawatts_600m/wps_run/namelist.wps"
+  namelist_input: "${WRF_RUNS}/gigawatts_600m/wrf_run/namelist.input"
 slurm:
   profile: owned_notch392_max
   job_name: wrf_gigawatts600m_preflight
