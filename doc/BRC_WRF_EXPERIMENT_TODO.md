@@ -20,8 +20,10 @@ attempt are retained in the evidence. The June executables are preserved.
 published archive tags preserve retired tips, and `master` stays frozen.
 Build provenance is in `BRC_WRF_RESEARCH_BUILDS.md`. The October case now has
 `brc-cases/gigawatts_600m.case.yaml`, `prepare_gigawatts.py`, and separate WPS
-real and bounded smoke wrappers. JRL's 6 October closure request authorizes bounded preparation
-through pre-flight tests; the 48-hour science run remains a later decision.
+real and bounded smoke wrappers. JRL's Flight 1 continuation (7 October UTC)
+authorizes work toward real reference integrations plus additional bounded guest
+tests. Measured smoke/cost, storage and recovery review still gates reference
+launch; no 48-hour run has been submitted.
 Control: `$WRF_ARCHIVE/gigawatts_600m/control/closure_20261006`.
 
 Audit 16101154 verified the released executable/runtime hashes, generated
@@ -47,6 +49,15 @@ normalize category 21 to 17 under released real.exe, with no other category
 change. Four regressions and all 142 delayed-namelist groups pass. The
 reviewed packet excludes transient fields and uses empty input stream 6.
 No forcing/model rerun was needed for this correction.
+
+Additional Flight 1 guest restart job `16106711` runs two unseeded three-minute
+segments on 32 ranks (notch401), using `gigawatts_guest_restart.py/.slurm`.
+It uses an isolated per-job control and writes no official matched-cost markers.
+The maintained source and sealed job packet are separate; source revisions do
+not mutate an executing packet. Readiness collector `16106962` runs after all
+five official jobs terminate and writes measured costs/acceptance for review;
+it cannot launch WRF. Atlas and operational handoff:
+`../ub-wx/experiments/drainage-canyons-gigawatts/prelim_work/flight1/README.md`.
 
 The bounded 56-rank jobs on notch392 are queued in order: baseline24
 16105749, control0 16105750, TKE 16105751, seeded two-segment transport
