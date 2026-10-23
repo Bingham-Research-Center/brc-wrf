@@ -56,7 +56,7 @@ export NETCDF=$(nf-config --prefix) NETCDF_C=$(nc-config --prefix)
 cd "$RUN"
 T0=$(date +%s)
 set +e
-srun --mpi=pmi2 -n "$SLURM_NTASKS" ./real.exe
+srun --kill-on-bad-exit=1 --mpi=pmi2 -n "$SLURM_NTASKS" ./real.exe
 RC=$?
 set -e
 mkdir -p "$GW_CONTROL/real_$SLURM_JOB_ID"

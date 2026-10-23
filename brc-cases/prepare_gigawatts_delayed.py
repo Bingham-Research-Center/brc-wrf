@@ -39,7 +39,11 @@ def setup(c):
     assert json.loads((static/'preparation.json').read_text())['source_real']==real['run_dir']
     assert json.loads((Path(chain['control'])/'preparation.json').read_text())['source_real']['job']==real['job']
     assert json.loads((Path(chain['control'])/'transport.json').read_text())['accepted']
-    build=Path(json.loads((c/'build/build_manifest.json').read_text())['build_directory'])
+    manifest=json.loads((c/'build/build_manifest.json').read_text())
+    build=Path(manifest['build_directory'])
+    scalar_count=manifest['tracers']['active_scalars']
+    assert scalar_count in (12,24)
+    assert front.get('terrain_blending',{}).get('interior_unchanged'), 'reviewed blended terrain required'
     e=c/('delayed_front_'+os.environ['SLURM_JOB_ID']);e.mkdir()
     run=Path(real['run_dir']).parent/e.name;run.mkdir()
     assert shutil.disk_usage(run).free>=200*1024**3,'less than 200 GiB scratch free'
@@ -71,6 +75,7 @@ def setup(c):
     shutil.copy2(boundary,run/boundary.name)
     assert sha(run/boundary.name)==expected['wrfbdy_d01']
     result={'run_dir':str(run),'control':str(e),'source_real':real,'static_packet':front,
+        'compiled_scalars':scalar_count,
         'source_transport':chain,'copied_parent_restarts':copies,'wrf_sha256':sha(run/'wrf.exe'),
         'start':'2025-01-26_19:00:00','activation':'2025-01-26_19:15:00','end':'2025-01-26_20:15:00',
         'launches':1,'production_continuation':False,
@@ -79,38 +84,46 @@ def setup(c):
     print(run)
 
 
-def tracer_summary(nc,bounds):
+def tracer_summary(nc,bounds,checker=None):
+    if checker is None:
+        import check_transport as checker
     total=None;pairs=[]
     for k,(lo,hi) in enumerate(bounds):
         raw=[nc[f'tr17_{n}'][0] for n in (2*k+1,2*k+2)]
         assert not any(np.ma.getmaskarray(v).any() for v in raw),('masked tracer',k+1)
         c,ct=map(np.asarray,raw)
         assert np.isfinite(c).all() and np.isfinite(ct).all(),('nonfinite tracer',k+1)
-        assert c.min()>=-1e-6 and c.max()<=1+1e-6 and ct.min()>=-5e-4,('tracer bounds',k+1)
-        active=c>1e-6;ratio=ct[active]/c[active]
-        assert not ratio.size or (ratio.min()>=lo-.05 and ratio.max()<=hi+.05),('theta ratio',k+1)
-        assert not (~active).any() or np.abs(ct[~active]).max()<=1e-3,('untagged theta',k+1)
+        metric=checker.pair_metrics(c,ct,c,(lo,hi),**checker.ADOPTED)
+        assert metric['finite'] and metric['c_min']>=checker.ADOPTED['c_min_bound']
+        assert metric['c_max']<=checker.ADOPTED['c_max_bound'] and metric['ct_min']>=metric['ct_floor_K']
+        assert metric['untagged_ct_max']<=metric['untagged_ct_bound_K']
+        # A regional nest can contain none of a source region. Judge its ratio
+        # only when seeded air exists; require inherited tags somewhere below.
+        assert not metric['ratio_cells'] or metric['accepted'],('theta ratio',k+1)
         if total is None:total=np.zeros(c.shape,dtype='f8')
         total+=c
-        pairs.append({'pair':k+1,'active_cells':int(active.sum()),
-                      'theta_min':float(ratio.min()) if ratio.size else None,
-                      'theta_max':float(ratio.max()) if ratio.size else None})
-    assert total.max()<=1+1e-5
-    assert all(not np.ma.getmaskarray(nc[f'tr17_{n}'][:]).any() and np.all(nc[f'tr17_{n}'][:]==0) for n in (23,24)),'held pair changed'
+        pairs.append(dict(metric,pair=k+1,ratio_evaluated=bool(metric['ratio_cells'])))
+    p999=float(np.percentile(total,99.9))
+    assert total.max()<=checker.ADOPTED_SUMS['sum_c_max'] and p999<=checker.ADOPTED_SUMS['sum_c_p999_max']
+    held=sorted(n for n in getattr(nc,'variables',nc) if n.startswith('tr17_') and int(n.split('_')[1])>2*len(bounds))
+    assert all(not np.ma.getmaskarray(nc[n][:]).any() and np.all(nc[n][:]==0) for n in held),'held pair changed'
     assert sum(p['active_cells'] for p in pairs)>0,'no inherited tags'
-    return {'pairs':pairs,'sum_c_max':float(total.max()),'held_pair_zero':True}
+    return {'pairs':pairs,'sum_c_max':float(total.max()),'sum_c_p999':p999,
+            'held_pair_zero':True,'held_fields':held,'bounds':'A3 adopted 11 October 2026'}
 
 
 def finish(c):
     ctl=module('delayed_ctl',c/'conveyor_ctl.py')
     clocks=module('delayed_clocks',c/'preflight_check.py')
+    checker=module('delayed_transport',c/'check_transport.py')
     e=c/('delayed_front_'+os.environ['SLURM_JOB_ID'])
     prep=json.loads((e/'preparation.json').read_text());run=Path(prep['run_dir'])
     scan=ctl.scan_all_rsl(run,56)
     assert ctl.classify(0,scan,True,False)[0]=='ok',scan
     assert scan['last_time']==prep['end'],scan['last_time']
     bounds=[]
-    for k in range(11):
+    n_pairs=6 if prep['compiled_scalars']==12 else 11
+    for k in range(n_pairs):
         samples=[]
         for name in prep['copied_parent_restarts']:
             with Dataset(run/name) as nc:
@@ -133,14 +146,15 @@ def finish(c):
                 for name in ('T','P','PB','PH','PHB','U','V','W','QVAPOR','TSK','TSLB','SMOIS','SNOW','SNOWH','SEAICE','HGT'):
                     values=nc[name][:]
                     assert not np.ma.getmaskarray(values).any() and np.isfinite(values).all(),(p.name,name)
-                row={'tracers':tracer_summary(nc,bounds)}
+                assert {n for n in nc.variables if n.startswith('tr17_')} == {f'tr17_{n}' for n in range(1,prep['compiled_scalars']+1)}
+                row={'tracers':tracer_summary(nc,bounds,checker)}
                 skin=np.asarray(nc['TSK'][:]);assert skin.min()>150 and skin.max()<350
                 row['skin_range_K']=[float(skin.min()),float(skin.max())]
                 fields[p.name]=row
         assert actual==expected,(dom,actual,expected)
         times[f'd{dom:02d}']=actual
     # Real terrain is retained in the interior; WRF may blend nest-edge terrain.
-    with Dataset(e.parent/('front_static_'+prep['static_packet']['job'])/'wrfinput_d03') as static, Dataset(one(run,'wrfout_d03_2025-01-26_19*15*00')) as initial:
+    with Dataset(Path(prep['static_packet']['control'])/'wrfinput_d03') as static, Dataset(one(run,'wrfout_d03_2025-01-26_19*15*00')) as initial:
         terrain=np.asarray(initial['HGT'][0])-np.asarray(static['HGT'][0])
         assert np.abs(terrain[10:-10,10:-10]).max()<=1e-3,'interior static terrain changed'
         static_check={'terrain_max_difference_m':float(np.abs(terrain).max()),

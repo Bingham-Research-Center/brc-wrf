@@ -24,7 +24,8 @@ sha256sum -c "$GW_CONTROL/build/runtime_sha256.txt"
 export RUN
 RUN=$("$PY" -B "$GW_CONTROL/delayed_model_tools/prepare_gigawatts_delayed.py" setup --control "$GW_CONTROL")
 EVIDENCE="$GW_CONTROL/delayed_front_$SLURM_JOB_ID"
-"$PY" -B "$GW_CONTROL/preflight_check.py" seeded "$RUN"/wrfrst_d0?_2025-01-26_19* > "$EVIDENCE/seed_check.txt"
+SCALARS=$("$PY" -B -c 'import json,sys;print(json.load(open(sys.argv[1]))["tracers"]["active_scalars"])' "$GW_CONTROL/build/build_manifest.json")
+"$PY" -B "$GW_CONTROL/preflight_check.py" seeded --scalar-count "$SCALARS" "$RUN"/wrfrst_d0?_2025-01-26_19* > "$EVIDENCE/seed_check.txt"
 module purge
 module load intel-oneapi-compilers/2021.4.0 intel-oneapi-mpi/2021.1.1 hdf5/1.14.3 netcdf-c/4.9.2 netcdf-fortran/4.6.1
 export NETCDF=$(nf-config --prefix) NETCDF_C=$(nc-config --prefix)
@@ -38,7 +39,7 @@ stop_test() {
 trap stop_test USR1 TERM
 T0=$(date +%s)
 set +e
-srun --mpi=pmi2 -n "$SLURM_NTASKS" ./wrf.exe &
+srun --kill-on-bad-exit=1 --mpi=pmi2 -n "$SLURM_NTASKS" ./wrf.exe &
 wait $!
 rc=$?
 set -e

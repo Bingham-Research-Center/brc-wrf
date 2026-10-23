@@ -12,10 +12,12 @@
 set -euo pipefail
 : "${GW_CONTROL:?durable control directory}"
 : "${GW_EXPERIMENT:?experiment source directory}"
-: "${GW_KIND:?baseline24, control0, tke24, or transport_chain}"
+: "${GW_KIND:?baseline12, baseline24, control0, tke24, or transport_chain}"
 [[ "$SLURM_NTASKS" == 56 ]] || { echo 'comparison requires 56 ranks'; exit 2; }
 PY="$HOME/software/pkg/miniforge3/envs/brc-tools-2026/bin/python"
 export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1
+export CONVEYOR_SRUN_ARGS=--kill-on-bad-exit=1
+sha256sum -c "$GW_CONTROL/runtime_source_sha256.txt"
 export PYTHONPATH="$GW_CONTROL/sources/brc-tools-49817aa143c154bea406d97f7cfafb4f7b973af5"
 BUILD=$("$PY" -B -c 'import json,sys;print(json.load(open(sys.argv[1]))["build_directory"])' "$GW_CONTROL/build/build_manifest.json")
 cd "$BUILD"
@@ -26,9 +28,12 @@ CONVEYOR_DIR=$("$PY" -B "$GW_CONTROL/prepare_gigawatts_smoke.py" --control "$GW_
 export CONVEYOR_PYTHON="$PY" CONVEYOR_NO_RESUBMIT=1
 RUN=$("$PY" -B -c 'import json,sys;print(json.load(open(sys.argv[1]))["wrf_run"])' "$CONVEYOR_DIR/state.json")
 if [[ "$GW_KIND" == transport_chain ]]; then
+  SCALARS=$("$PY" -B -c 'import json,sys;print(json.load(open(sys.argv[1]))["tracers"]["active_scalars"])' "$GW_CONTROL/build/build_manifest.json")
+  SEED_ARGS=()
+  [[ "$SCALARS" != 12 ]] || SEED_ARGS+=(--fallback6)
   LABELS="${GW_CONTROL%/gigawatts_600m/control/*}/terrain/labels"
-  "$PY" -B "$GW_EXPERIMENT/handoff/seed_tracers_gigawatts.py" --labels "$LABELS/labels_green30.npz" --catchments "$LABELS/terrain_catchments_green30.csv" --sinks "$LABELS/terrain_sinks_green30.csv" "$RUN"/wrfrst_d0?_2025-01-26_19* > "$CONVEYOR_DIR/seeding.txt"
-  "$PY" -B "$CONVEYOR_DIR/preflight_check.py" seeded "$RUN"/wrfrst_d0?_2025-01-26_19* > "$CONVEYOR_DIR/seed_check.txt"
+  "$PY" -B "$GW_EXPERIMENT/handoff/seed_tracers_gigawatts.py" "${SEED_ARGS[@]}" --labels "$LABELS/labels_green30.npz" --catchments "$LABELS/terrain_catchments_green30.csv" --sinks "$LABELS/terrain_sinks_green30.csv" "$RUN"/wrfrst_d0?_2025-01-26_19* > "$CONVEYOR_DIR/seeding.txt"
+  "$PY" -B "$CONVEYOR_DIR/preflight_check.py" seeded --scalar-count "$SCALARS" "$RUN"/wrfrst_d0?_2025-01-26_19* > "$CONVEYOR_DIR/seed_check.txt"
   "$PY" -B "$CONVEYOR_DIR/conveyor_ctl.py" --control "$CONVEYOR_DIR" seeded --sim-time '2025-01-26_19:00:00'
 fi
 # Slurm sends B:USR1 to this outer shell; forward it to the controller shell so
@@ -47,7 +52,7 @@ trap - USR1 TERM
 "$PY" -B "$GW_EXPERIMENT/analysis/iter7/check_smoke.py" --control "$CONVEYOR_DIR" --root "$GW_CONTROL" --kind "$GW_KIND"
 if [[ "$GW_KIND" == transport_chain ]]; then
   "$PY" -B "$CONVEYOR_DIR/preflight_check.py" chain --control "$CONVEYOR_DIR" > "$CONVEYOR_DIR/chain_check.txt"
-  "$PY" -B "$GW_EXPERIMENT/analysis/iter7/check_transport.py" --run-dir "$RUN" --output "$CONVEYOR_DIR/transport.json"
+  "$PY" -B "$GW_EXPERIMENT/analysis/iter7/check_transport.py" --scalar-count "$SCALARS" --run-dir "$RUN" --output "$CONVEYOR_DIR/transport.json"
 fi
 # Completion is written only after every applicable check passes.
 "$PY" -B - <<'PY'

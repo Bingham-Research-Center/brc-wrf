@@ -85,6 +85,10 @@ If a fact changes, update the owner doc and leave only short pointers elsewhere.
   logic, and reusable visualization helpers such as `brc_tools.visualize.grid`.
 - `brc-knowledge`: canonical CHPC infrastructure facts and validated Slurm
   guidance.
+- `symlach`: independent idealized flow/drainage, offline DEM calculations,
+  and theory-video field generation. `ub-wx` owns experiment choices;
+  `brc-voxel-viz` owns rendering/encoding. Extraction provenance and legacy
+  consumer migration are recorded in `../symlach/docs/MIGRATION.md`.
 
 Patch the repo that owns the behavior. Do not add downloader/staging logic to
 `brc-wrf`. Do not put WRF/WPS execution wrappers in `brc-tools`.
@@ -117,7 +121,8 @@ a proven NetCDF-capable render environment with `PYTHONPATH` pointed at
 
 ## Active Experiment Snapshot
 
-- Gigawatts: 24-tracer compile released; model pre-flight and science run are
+- Gigawatts: 24-tracer release retained; approved P2 twelve-scalar build and
+  bounded suite in progress (22 October). Model pre-flight and science run are
   separate gates. Build provenance: `doc/BRC_WRF_RESEARCH_BUILDS.md`; current
   cross-repo preparation: `../ub-wx/experiments/drainage-canyons-gigawatts/README.md`.
 - Pelican: completed controls/treatments await science review; no new run

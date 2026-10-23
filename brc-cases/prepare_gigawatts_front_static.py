@@ -29,7 +29,7 @@ EXTEND = set('frames_per_auxhist7 auxhist7_interval end_second end_minute '
     'e_we e_sn e_vert dx dy grid_id parent_id i_parent_start j_parent_start '
     'parent_grid_ratio parent_time_step_ratio bl_mynn_tkeadvect tke_budget '
     'mp_physics sf_sfclay_physics bl_pbl_physics sf_surface_physics sf_lake_physics '
-    'diff_6th_thresh diff_6th_slopeopt tracer_pblmix tracer_adv_opt tracer_opt'.split())
+    'diff_6th_thresh diff_6th_slopeopt tracer_pblmix tracer_adv_opt tracer_opt epssm'.split())
 
 
 def namelist(base, ctl, delayed=False):
@@ -47,7 +47,8 @@ def namelist(base, ctl, delayed=False):
         'parent_id': [1,1,2], 'i_parent_start': [1,71,237],
         'j_parent_start': [1,81,216], 'parent_grid_ratio': [1,5,3],
         'parent_time_step_ratio': [1,3,5], 'time_step': 9, 'feedback': 0,
-        'restart': False, 'tracer_opt': [2]*3, 'bl_mynn_tkeadvect': [False]*3}
+        'restart': False, 'tracer_opt': [2]*3, 'tracer_adv_opt': [2]*3,
+        'bl_mynn_tkeadvect': [False]*3}
     if delayed:
         values.update(run_hours=1, run_minutes=15, restart=True,
             start_hour=[19]*3, start_minute=[0,0,15], end_hour=[20]*3,
@@ -57,6 +58,7 @@ def namelist(base, ctl, delayed=False):
     for key, value in values.items():
         text = ctl.set_key(text, key, value)
     if delayed:
+        text = ctl.set_key(text, 'epssm', [0.3, 0.3, 0.9], insert_group='dynamics')
         for key, value in {'fine_input_stream':[0,0,6], 'io_form_auxinput2':2,
                            'io_form_auxinput6':2}.items():
             text = ctl.set_key(text, key, value, insert_group='time_control')
@@ -120,7 +122,7 @@ def setup(control):
             (run/'real'/p.name).symlink_to(p.resolve())
     shutil.copy2(build/'main/real.exe',run/'real/real.exe')
     shutil.copy2(control/'iofields.txt',run/'real/iofields.txt')
-    base=(source/'namelist.input').read_text()
+    base=(control/'namelist.base.input').read_text()
     (run/'real/namelist.input').write_text(namelist(base,ctl))
     (e/'namelist.delayed.input').write_text(namelist(base,ctl,delayed=True))
     shutil.copy2(run/'wps/namelist.wps',e/'namelist.wps')
@@ -168,6 +170,8 @@ def finish(control, prepared_job=None):
             'review_job':os.environ['SLURM_JOB_ID'], 'preserved_evidence':str(original),
             'reason':'recognize released real.exe inland-lake category normalization; no model rerun'},indent=2)+'\n')
     ctl=load_module(control/'conveyor_ctl.py')
+    # Rechecks reuse the verified static source but render current experiment settings.
+    (e/'namelist.delayed.input').write_text(namelist((control/'namelist.base.input').read_text(),ctl,delayed=True))
     scan=ctl.scan_all_rsl(run/'real',int(os.environ['SLURM_NTASKS']))
     assert not scan['missing_ranks'] and not any(scan.get(k) for k in ('cfl','nan','fatal')),scan
     assert 'SUCCESS COMPLETE REAL_EM INIT' in (run/'real/rsl.out.0000').read_text()
@@ -185,7 +189,7 @@ def finish(control, prepared_job=None):
                 islake=int(geo.getncattr('ISLAKE')),iswater=int(geo.getncattr('ISWATER')))
             np.testing.assert_array_equal(nc['IVGTYP'][:],nc['LU_INDEX'][:])
     result=prepare(run/'real/wrfinput_d03',e/'wrfinput_d03',build/'Registry',
-                   '2025-01-26_19:15:00',control/'iofields.txt')
+                   '2025-01-26_19:15:00',control/'iofields.txt', parent=source/'wrfinput_d02')
     result.update(job=os.environ['SLURM_JOB_ID'],preparation_job=prepared_job or os.environ['SLURM_JOB_ID'],
         control=str(e),accepted_static_packet=True,landuse_normalization=landuse,
         delayed_namelist_sha256=sha(e/'namelist.delayed.input'),

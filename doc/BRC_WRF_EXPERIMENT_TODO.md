@@ -8,70 +8,31 @@ AI cold start.
 
 ## Current Aim
 
-**6 October 2026: drainage canyons in gigawatts.** The approved 24-tracer
-rebuild passed: job `16071302`, `COMPLETED 0:0`, elapsed `00:30:44`, source
-`5a68435c`, published tag `john/build/wrf-4.8.0-tracers24-20261006`.
-The fresh build has all four executables, exact generated tracer metadata,
-empty compiler-error/source-diff checks, and executable/runtime hashes.
-An initial compile exposed a missing make dependency; the fix and failed
-attempt are retained in the evidence. The June executables are preserved.
+**22 October 2026: drainage canyons in gigawatts, P2.** The accepted work
+order is ub-wx `bcf2d1f`, `experiments/drainage-canyons-gigawatts/handoff/README.md`.
+The three unfinished Flight 1 files were preserved in `18e04753`. The distinct
+12-scalar source is `b76fe00b`; compile job `16434828` runs on notch137 (16 CPUs).
+The October 6 24-scalar build and its tag remain preserved. Current build truth
+and evidence paths belong to `BRC_WRF_RESEARCH_BUILDS.md`.
 
-`john/wrf` is now the sole active John branch and GitHub default; eight
-published archive tags preserve retired tips, and `master` stays frozen.
-Build provenance is in `BRC_WRF_RESEARCH_BUILDS.md`. The October case now has
-`brc-cases/gigawatts_600m.case.yaml`, `prepare_gigawatts.py`, and separate WPS
-real and bounded smoke wrappers. JRL's Flight 1 continuation (7 October UTC)
-authorizes work toward real reference integrations plus additional bounded guest
-tests. Measured smoke/cost, storage and recovery review still gates reference
-launch; no 48-hour run has been submitted.
-Control: `$WRF_ARCHIVE/gigawatts_600m/control/closure_20261006`.
+P2 runs baseline12, control0 and transport_chain with monotonic tracer advection
+on notch392 from 23 October 04:45 MDT, after build/control acceptance. The matched
+pair requires identical initial hashes, executable, node, ranks and cadence;
+scalar surcharge must be <=40%. TKE advection stays off. Sealed launches use
+`--kill-on-bad-exit=1`.
 
-Audit 16101154 verified the released executable/runtime hashes, generated
-tracers, accepted geogrid and lake mapping. The native MODIS comparison
-supports the unshifted grid. Staging 16101170 verified all 99 HRRR/GFS-soil
-files. WPS 16103054 accepted all 98 hourly metgrid files after the original
-two-hour timeout, with zero numerical difference across 87 overlap fields.
-Real.exe 16104328 and independent initial/boundary audit 16104808 passed:
-grid A, frozen soil under snow, prescribed lake state and all 24 tracers.
+E1 raises only delayed d03 epssm to 0.9. B1 now explicitly uses WRF's five parent
+rows plus five transition rows (JRL clarification this session), with SINT
+parent interpolation and before/after evidence. The delayed checker uses the
+adopted A3 tracer bounds. D1 makes the delayed test a gate for 200 m follow-ons,
+not for the two-domain reference. Collector preparation may write a new
+STOPped reference; the 48-hour model run still requires measured review and
+JRL's final go. No production model run is authorized by a collector.
 
-Runtime capsule v5 passed in 16104312 (ub-wx `d55373b`, brc-wrf `fee46ae6`);
-older capsules remain preserved. The group-only correction moves
-`tracer_pblmix` to physics; all 139 compiled namelist keys pass and no value
-changed. The focused controller/clock/field/transport/producer suite has
-42 passing tests (16103278), including failed-render launch rejection.
-
-Initialization probe 16105036 passed: three coarse steps, 27 simulated
-seconds, eight ranks, exact endpoint and no CFL/NaN/fatal messages. It
-supplies initialization evidence only. Front-static WPS/real 16105035
-completed the executables but stopped on an overly strict land-use check.
-Recheck 16105842 accepted the existing files: exactly 375 inland-lake cells
-normalize category 21 to 17 under released real.exe, with no other category
-change. Four regressions and all 142 delayed-namelist groups pass. The
-reviewed packet excludes transient fields and uses empty input stream 6.
-No forcing/model rerun was needed for this correction.
-
-Additional Flight 1 guest restart job `16106711` runs two unseeded three-minute
-segments on 32 ranks (notch401), using `gigawatts_guest_restart.py/.slurm`.
-It uses an isolated per-job control and writes no official matched-cost markers.
-The maintained source and sealed job packet are separate; source revisions do
-not mutate an executing packet. Readiness collector `16106962` runs after all
-five official jobs terminate and writes measured costs/acceptance for review;
-it cannot launch WRF. Atlas and operational handoff:
-`../ub-wx/experiments/drainage-canyons-gigawatts/prelim_work/flight1/README.md`.
-
-The bounded 56-rank jobs on notch392 are queued in order: baseline24
-16105749, control0 16105750, TKE 16105751, seeded two-segment transport
-16105752, and delayed-front activation 16105867. Each requires its
-predecessor's accepted completion; the delayed wrapper also requires the
-actual static-packet review. It keeps 19:15 activation inside one fixed
-19:00–20:15 launch. No job resubmits or continues into production. The
-full-node tests await resources; measured cost/transport/stability and
-surface continuity remain unaccepted until their actual evidence passes.
-
-Theory/staging source is `11eccf1`; tested diagnostic source `49817aa` is already
-published and now has PR 72. Model source remains the released `5a68435c`.
-Current execution status and Iteration 7 review:
-`../ub-wx/experiments/drainage-canyons-gigawatts/README.md`.
+Execution/sealing tools belong to brc-wrf; experiment decisions and scientific
+acceptance criteria are in ub-wx. `symlach` is the requested independent home
+for idealized/DEM calculations and theory-video model fields; its renderer
+consumer is brc-voxel-viz. Input acquisition/staging remains brc-tools.
 
 ## Completed Pelican Work Awaiting Review
 

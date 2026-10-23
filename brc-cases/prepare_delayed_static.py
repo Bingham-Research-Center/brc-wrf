@@ -14,6 +14,7 @@ import re
 
 import numpy as np
 from netCDF4 import Dataset, chartostring
+from nest_terrain import parent_terrain, blend_terrain
 
 STREAM = 6
 # Spatial geometry and land/soil categories only. In particular, exclude
@@ -74,7 +75,8 @@ def registry_inventory(root):
     return {'files': seen, 'names': names, 'default_members': sorted(members)}
 
 
-def prepare(source, output, registry, activation, base_iofields):
+def prepare(source, output, registry, activation, base_iofields, *, parent=None,
+            spec_bdy_width=5, blend_width=5):
     activation = datetime.strptime(activation, '%Y-%m-%d_%H:%M:%S').strftime('%Y-%m-%d_%H:%M:%S')
     source, output = Path(source), Path(output)
     assert source.resolve() != output.resolve()
@@ -83,6 +85,7 @@ def prepare(source, output, registry, activation, base_iofields):
     assert not output.with_suffix('.provenance.json').exists()
     inventory = registry_inventory(registry)
     before = sha(source)
+    blending = None
     base = Path(base_iofields).read_text()
     for line in base.splitlines():
         if line.strip() and '#' not in line:
@@ -113,6 +116,35 @@ def prepare(source, output, registry, activation, base_iofields):
                 target = out.createVariable(name, v.dtype, v.dimensions, **fill)
                 target.setncatts({k: v.getncattr(k) for k in v.ncattrs() if k != '_FillValue'})
                 target[:] = np.asarray(list(activation), dtype='S1')[None, :] if name == 'Times' else v[:]
+            if parent is not None:
+                parent = Path(parent)
+                parent_before = sha(parent)
+                with Dataset(parent) as coarse:
+                    assert int(coarse.getncattr('GRID_ID')) == int(src.getncattr('PARENT_ID'))
+                    ratio = int(src.getncattr('PARENT_GRID_RATIO'))
+                    assert abs(float(coarse.DX)/float(src.DX)-ratio) < 1e-6
+                    mapped = parent_terrain(coarse['HGT'][0], src['HGT'].shape[1:],
+                        int(src.getncattr('I_PARENT_START')), int(src.getncattr('J_PARENT_START')), ratio)
+                original = np.asarray(src['HGT'][0])
+                blended, weights = blend_terrain(original, mapped, spec_bdy_width, blend_width)
+                out['HGT'][0] = blended
+                def edge_stats(values, mask):
+                    delta = values[mask]-mapped[mask]
+                    return {'max_absolute_m': float(np.abs(delta).max()),
+                            'rms_m': float(np.sqrt(np.mean(delta.astype('f8')**2)))}
+                blending = {'method': 'WRF SINT mass interpolation and blend_terrain',
+                    'parent': str(parent.resolve()), 'parent_sha256': parent_before,
+                    'spec_bdy_width': spec_bdy_width, 'blend_width': blend_width,
+                    'modified_rows': spec_bdy_width+blend_width,
+                    'outer_boundary_before': edge_stats(original, weights == 0),
+                    'outer_boundary_after': edge_stats(blended, weights == 0),
+                    'whole_blend_before': edge_stats(original, weights < 1),
+                    'whole_blend_after': edge_stats(blended, weights < 1),
+                    'interior_unchanged': bool(np.array_equal(original[weights == 1], blended[weights == 1])),
+                    'hgt_before_sha256': hashlib.sha256(original.tobytes()).hexdigest(),
+                    'hgt_after_sha256': hashlib.sha256(blended.tobytes()).hexdigest()}
+                assert sha(parent) == parent_before, 'parent changed during terrain preparation'
+                out.setncattr('BRC_TERRAIN_BLEND', json.dumps(blending, sort_keys=True))
     assert sha(source) == before, 'source changed during preparation'
     with Dataset(output) as check:
         assert list(map(str, chartostring(check['Times'][:]))) == [activation]
@@ -128,6 +160,7 @@ def prepare(source, output, registry, activation, base_iofields):
         'output': str(output.resolve()), 'output_sha256': sha(output),
         'iofields': str(masks.resolve()), 'iofields_sha256': sha(masks),
         'static_fields': chosen, 'registry': inventory,
+        'terrain_blending': blending,
         'namelist_required': {'fine_input_stream': [0, 0, STREAM],
             'io_form_auxinput2': 2, 'io_form_auxinput6': 2,
             'ignore_iofields_warning': False},
@@ -144,9 +177,11 @@ def main():
     p.add_argument('--registry', type=Path, required=True)
     p.add_argument('--activation', required=True)
     p.add_argument('--base-iofields', type=Path, required=True)
+    p.add_argument('--parent', type=Path, help='accepted parent wrfinput/restart for WRF terrain blending')
     a = p.parse_args()
     assert os.environ.get('SLURM_JOB_ID'), 'NetCDF copying and hashing belong on Slurm'
-    print(json.dumps(prepare(a.source, a.output, a.registry, a.activation, a.base_iofields), indent=2))
+    print(json.dumps(prepare(a.source, a.output, a.registry, a.activation, a.base_iofields,
+                            parent=a.parent), indent=2))
 
 
 if __name__ == '__main__':

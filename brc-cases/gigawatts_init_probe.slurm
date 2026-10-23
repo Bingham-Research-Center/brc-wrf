@@ -61,7 +61,7 @@ export NETCDF=$(nf-config --prefix) NETCDF_C=$(nc-config --prefix)
 cd "$RUN"
 T0=$(date +%s)
 set +e
-srun --mpi=pmi2 -n "$SLURM_NTASKS" ./wrf.exe
+srun --kill-on-bad-exit=1 --mpi=pmi2 -n "$SLURM_NTASKS" ./wrf.exe
 rc=$?
 set -e
 mkdir "$EVIDENCE/rsl"

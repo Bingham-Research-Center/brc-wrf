@@ -29,7 +29,7 @@ module load intel-oneapi-compilers/2021.4.0 intel-oneapi-mpi/2021.1.1 hdf5/1.14.
 export NETCDF=$(nf-config --prefix) NETCDF_C=$(nc-config --prefix)
 cd "$RUN/wps"
 set +e
-srun --mpi=pmi2 -n "$SLURM_NTASKS" ./metgrid.exe 2>&1 | tee "$EVIDENCE/metgrid_stdout.txt"
+srun --kill-on-bad-exit=1 --mpi=pmi2 -n "$SLURM_NTASKS" ./metgrid.exe 2>&1 | tee "$EVIDENCE/metgrid_stdout.txt"
 codes=("${PIPESTATUS[@]}")
 set -e
 cp metgrid.log* "$EVIDENCE/"
@@ -56,7 +56,7 @@ assert seen==['2025-01-26_18:00:00','2025-01-26_19:00:00'],seen
 PY
 cd "$RUN/real"
 set +e
-srun --mpi=pmi2 -n "$SLURM_NTASKS" ./real.exe
+srun --kill-on-bad-exit=1 --mpi=pmi2 -n "$SLURM_NTASKS" ./real.exe
 rc=$?
 set -e
 mkdir "$EVIDENCE/real_logs"

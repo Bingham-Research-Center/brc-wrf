@@ -19,6 +19,7 @@ cd "$BUILD"
 sha256sum -c "$GW_CONTROL/build/build_sha256.txt"
 sha256sum -c "$GW_CONTROL/build/runtime_sha256.txt"
 export CONVEYOR_DIR CONVEYOR_PYTHON="$PY" CONVEYOR_NO_RESUBMIT=1
+export CONVEYOR_SRUN_ARGS=--kill-on-bad-exit=1
 CONVEYOR_DIR=$("$PY" -B "$GW_GUEST_PACKET/gigawatts_guest_restart.py" setup --control "$GW_CONTROL")
 printf '%s\n' "$CONVEYOR_DIR" > "$GW_GUEST_PACKET/control_${SLURM_JOB_ID}.txt"
 forward_signal() {

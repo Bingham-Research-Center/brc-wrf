@@ -18,6 +18,16 @@ def test_only_front_source_pairs_need_to_be_present(tags):
     assert all(p['active_cells']==0 for p in result['pairs'][1:])
 
 
+def test_twelve_scalars_and_adopted_zero_mass_tolerance(tags):
+    tags={k:v for k,v in tags.items() if int(k.split('_')[1])<=12}
+    tags['tr17_2'][0,1,0,0]=2.0
+    result=tracer_summary(tags,[(270,310)]*6)
+    assert result['held_fields']==[] and len(result['pairs'])==6
+    assert result['pairs'][0]['untagged_ct_max']==2.0
+    tags['tr17_2'][0,1,0,0]=4.0
+    with pytest.raises(AssertionError):tracer_summary(tags,[(270,310)]*6)
+
+
 @pytest.mark.parametrize('field,value,message',[
     ('tr17_2',1.,'theta ratio'),('tr17_23',.1,'held pair'),('tr17_1',float('nan'),'nonfinite')])
 def test_bad_inheritance_is_rejected(tags,field,value,message):

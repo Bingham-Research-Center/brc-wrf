@@ -16,6 +16,23 @@ the job has completed. Compilation may use another owned Notchpeak node;
 the matched 56-rank cost pair remains on notch392 from 23 October 04:45 MDT.
 The 48-hour run still requires the measured review and final go.
 
+### P2 compile release, 23 October UTC
+
+Job `16434828` completed `0:0` on owned `notch137` in `00:36:56`
+(16 CPUs, 64 GiB). Source is `b76fe00b4b0b2997a2a72625dc2da0640a21c4b4`;
+release tag: `john/build/wrf-4.8.0-tracers12-20261023`.
+The independent build is
+`lawson-group6/jrlawson/wrf_build/WRF-4.8.0-tracers12-b76fe00b4b0b-20261023T025123Z`.
+Evidence is
+`lawson-group6/jrlawson/wrf_build_logs/brc-wrf/tracers12_20261023T025123Z_b76fe00b4b0b`.
+Source and generated metadata both confirm exactly `tr17_1..12` in
+`tracer_opt=2`. The compiler error scan and tracked source diff are empty;
+all four executables exist, and `wrf.exe`/`real.exe` libraries resolve.
+The manifest pins executables, configuration, Registry and 90 runtime entries.
+`wrf.exe` SHA-256 is
+`dc7f1c28c49ad04f3777d0aecd1e1d0f7701e34f87b88b32fc2bd82a9a25066a`.
+This releases the compile for the bounded P2 suite; model acceptance is pending.
+
 Maintain `john/wrf` as the research source line on the frozen WRF 4.8.0
 baseline. Experiment case files coexist on that line. Use short-lived
 `john/*` branches for changes that need review, and immutable tags plus

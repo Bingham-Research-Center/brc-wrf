@@ -26,6 +26,8 @@ def test_delayed_clock_static_stream_and_matched_parents(packet):
     assert value(out,'fine_input_stream')==['0','0','6']
     assert value(out,'ignore_iofields_warning')==['.false.']
     assert value(out,'restart')==['.true.']
+    assert value(out,'epssm')==['0.3','0.3','0.9']
+    assert value(out,'tracer_adv_opt')==['2']*3
     for key in ['e_we','e_sn','e_vert','dx','dy','i_parent_start','j_parent_start',
                 'parent_grid_ratio','parent_time_step_ratio','tracer_opt',
                 'diff_6th_slopeopt','diff_6th_thresh','mp_physics','sf_surface_physics']:

@@ -10,6 +10,17 @@ packet. Separate `gigawatts_wps.slurm`, `gigawatts_real.slurm` and
 `gigawatts_smoke.slurm` stop at their respective evidence gates. Current jobs,
 source pins and approval scope are recorded in the ub-wx experiment README.
 
+The 22 October P2 order adds `baseline12` and monotonic tracer advection.
+`prepare_gigawatts_p2.py` seals a new control from exact source commits and
+the separate 12-scalar build, verifies its hashes, reuses accepted initial
+fields, and builds the revised static packet. It does not overwrite earlier
+capsules. `gigawatts_p2_stage.slurm` dispatches explicitly submitted bounded
+jobs; `collect_gigawatts_p2.py` records cost/transport acceptance and, if
+they pass, prepares a new reference with STOP still present. It cannot
+submit WRF. Match baseline12 and control0 on notch392, 56 ranks, one build,
+initial files, monotonic advection and output cadence. Their cost rule is 40%.
+The delayed test gates only 200 m follow-on nests (D1), with d03 epssm 0.9.
+
 `gigawatts_metgrid_resume.slurm` is a bounded continuation for an initial WPS
 job that reaches TIMEOUT after entering d02. It preserves completed files and
 intermediates, redoes the last-started hour plus a completed overlap hour on
@@ -21,8 +32,11 @@ increase, so this packet avoids redoing the completed ungrib/domain-one work.
 `prepare_delayed_static.py` prepares the later d03 static-only input from an
 actual real.exe file. It audits the released build's complete Registry include
 graph and uses otherwise empty input stream 6 with an explicit static allowlist.
-It preserves the original, records hashes and field selection, and changes only
-the copy's Times/START_DATE to the activation time. It excludes atmospheric,
+It preserves the original and records hashes and field selection. With `--parent`,
+it also uses `nest_terrain.py` to reproduce WRF SINT parent interpolation and
+WRF blend weights: five exact-parent rows followed by five transition rows,
+as clarified by JRL on 22 October. It records before/after HGT hashes, edge
+differences and unchanged interior. Times/START_DATE are retimed. It excludes atmospheric,
 tracer, snow/ice and transient surface/soil fields. Required namelist settings
 are emitted in its provenance JSON; the three-domain packet and actual model
 inheritance still require review. Job 16102225 passed four synthetic tests and
